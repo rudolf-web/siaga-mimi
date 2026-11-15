@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIAGA MIMI — Sistem Administrasi Guru MIMI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, Helvetica, sans-serif; background: #f4f6f7; color: #263238; }
+  a { color: #0f7a7d; }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* ===== Sidebar ===== */
+  .sidebar { width: 262px; flex: 0 0 262px; background: #0b3a3b; color: #dcebe9; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 50; }
+  .logo { display: flex; align-items: center; gap: 10px; padding: 18px 20px; font-size: 24px; font-weight: 800; color: #fff; letter-spacing: .5px; background: #0e4446; }
+  .logo .logo-ic { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+  .profile { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,.10); }
+  .avatar { width: 52px; height: 52px; border-radius: 50%; background: #1d7a7d; border: 2px solid rgba(255,255,255,.35); display: flex; align-items: center; justify-content: center; flex: 0 0 52px; }
+  .avatar svg { width: 30px; height: 30px; fill: #cfe8e6; }
+  .pname { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2; }
+  .psub { font-size: 12px; color: #8fb3b0; margin: 2px 0 6px; }
+  .badge { display: inline-block; background: #17807f; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; }
+  .nav { padding: 10px 0 20px; }
+  .nav-sec { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #7ba6a2; padding: 18px 20px 8px; }
+  .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 20px; color: #dcebe9; text-decoration: none; font-size: 14.5px; cursor: pointer; border-left: 3px solid transparent; }
+  .nav-item:hover { background: rgba(255,255,255,.06); }
+  .nav-item.active { background: rgba(255,255,255,.12); border-left-color: #f5a623; font-weight: 700; color: #fff; }
+  .nav-item .ic { width: 20px; text-align: center; font-size: 15px; }
+  .nav-sec.collapsible { cursor: pointer; user-select: none; }
+  .nav-sec .arrow { float: right; font-size: 11px; }
+  .nav-items.collapsed { display: none; }
+
+  /* ===== Main ===== */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e3e8e8; display: flex; align-items: center; gap: 14px; padding: 0 22px; position: sticky; top: 0; z-index: 40; }
+  .menu-btn { width: 42px; height: 42px; border: none; border-radius: 9px; background: #0f7a7d; color: #fff; font-size: 19px; cursor: pointer; flex: 0 0 42px; }
+  .menu-btn:hover { background: #0d6a6d; }
+  .page-title { font-size: 21px; font-weight: 800; color: #0f6b6d; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .clock { border: 1px solid #d5dee0; border-radius: 999px; padding: 5px 13px; font-weight: 700; font-size: 14px; color: #37474f; background: #fff; font-variant-numeric: tabular-nums; }
+  .content { padding: 22px; max-width: 1180px; width: 100%; margin: 0 auto; }
+
+  /* ===== Stat cards ===== */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .stat { border-radius: 12px; padding: 18px 20px; color: #fff; display: flex; justify-content: space-between; align-items: center; min-height: 96px; box-shadow: 0 2px 8px rgba(0,0,0,.10); }
+  .stat .lbl { font-size: 15px; opacity: .92; margin-bottom: 6px; }
+  .stat .num { font-size: 36px; font-weight: 800; line-height: 1; }
+  .stat .sub { font-size: 12.5px; opacity: .9; margin-top: 6px; }
+  .stat .sic { font-size: 40px; opacity: .55; line-height: 1; }
+  .stat.teal { background: #0e7c7f; } .stat.blue { background: #1b87c9; }
+  .stat.orange { background: #f39c12; } .stat.olive { background: #7c7c4e; }
+
+  /* ===== Cards ===== */
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,.07); padding: 22px 24px; margin-bottom: 20px; }
+  .welcome h2 { color: #0f7a7d; font-size: 23px; font-weight: 800; margin-bottom: 8px; }
+  .welcome p { color: #5b6b70; font-size: 15.5px; line-height: 1.6; }
+  .card h3 { color: #0f6b6d; font-size: 17px; margin-bottom: 12px; }
+  .card h4 { color: #37474f; font-size: 15px; margin: 16px 0 8px; }
+  .muted { color: #78909c; font-size: 13.5px; }
+  .row-flex { display: flex; gap: 16px; flex-wrap: wrap; }
+  .row-flex .card { flex: 1 1 300px; }
+
+  /* ===== Buttons, forms, tables ===== */
+  .btn { display: inline-block; border: none; border-radius: 8px; padding: 9px 16px; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; }
+  .btn-primary { background: #0f7a7d; color: #fff; }
+  .btn-primary:hover { background: #0d6a6d; }
+  .btn-danger { background: #c0392b; color: #fff; }
+  .btn-danger:hover { background: #a93226; }
+  .btn-ghost { background: #fff; color: #0f6b6d; border: 1px solid #b8c9c9; }
+  .btn-ghost:hover { background: #eef4f4; }
+  .btn-sm { padding: 6px 11px; font-size: 13px; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .page-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .page-head h2 { color: #0f6b6d; font-size: 20px; }
+  .page-head p { color: #78909c; font-size: 13.5px; margin-top: 3px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  label { display: block; font-size: 13.5px; font-weight: 700; color: #455a64; margin-bottom: 5px; }
+  input[type=text], input[type=url], input[type=number], input[type=date], input[type=month], select, textarea { width: 100%; border: 1px solid #cfd8d8; border-radius: 8px; padding: 9px 11px; font-size: 14px; font-family: inherit; background: #fff; }
+  textarea { min-height: 76px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid #9fd0d1; border-color: #0f7a7d; }
+  .form-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { background: #eef3f3; color: #37474f; text-align: left; padding: 10px 12px; border-bottom: 2px solid #dfe7e7; white-space: nowrap; }
+  td { padding: 10px 12px; border-bottom: 1px solid #e8eeee; vertical-align: top; }
+  tr:hover td { background: #f7fafb; }
+  .empty { text-align: center; padding: 34px 16px; color: #78909c; }
+  .empty .big { font-size: 38px; margin-bottom: 8px; }
+  .empty p { margin-bottom: 14px; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .pill-green { background: #e0f2e9; color: #1e7d32; }
+  .pill-amber { background: #fff3e0; color: #e65100; }
+  .pill-blue { background: #e3f2fd; color: #1565c0; }
+  .pill-grey { background: #eceff1; color: #546e7a; }
+  .status-ok { color: #1e7d32; font-weight: 700; }
+  .status-err { color: #c62828; font-weight: 700; }
+  .status-info { color: #1565c0; font-weight: 700; }
+  .link { word-break: break-all; }
+
+  /* status buttons (absensi) */
+  .st-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .st-btn { border: 1px solid #cfd8d8; background: #fff; border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 700; cursor: pointer; color: #546e7a; }
+  .st-btn.on-hadir { background: #1e7d32; border-color: #1e7d32; color: #fff; }
+  .st-btn.on-sakit { background: #f9a825; border-color: #f9a825; color: #fff; }
+  .st-btn.on-izin { background: #1565c0; border-color: #1565c0; color: #fff; }
+  .st-btn.on-alpa { background: #c62828; border-color: #c62828; color: #fff; }
+
+  /* calendar */
+  .cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .cal-head h3 { margin: 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow { text-align: center; font-weight: 800; font-size: 12.5px; color: #78909c; padding: 6px 0; }
+  .cal-day { aspect-ratio: 1.4; border: 1px solid #e3e8e8; border-radius: 8px; padding: 6px 8px; font-size: 13.5px; background: #fff; }
+  .cal-day.other { background: #f4f6f7; color: #b0bec5; }
+  .cal-day.today { background: #0f7a7d; color: #fff; font-weight: 800; border-color: #0f7a7d; }
+  .cal-day .dot { width: 7px; height: 7px; border-radius: 50%; background: #f39c12; display: inline-block; margin-top: 4px; }
+
+  .sidebar.hidden { display: none; }
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); transition: transform .2s; }
+    .sidebar.open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,.35); }
+    .content { padding: 14px; }
+  }
+  @media (min-width: 901px) {
+    .sidebar.open { display: flex; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo"><span class="logo-ic">▦</span> SIAGA MIMI</div>
+    <div class="profile">
+      <div class="avatar"><svg viewBox="0 0 24 24"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.34 0-10 1.67-10 5v3h20v-3c0-3.33-6.66-5-10-5z"/></svg></div>
+      <div>
+        <div class="pname">Rudolf Admin</div>
+        <div class="psub">SD MIMI Surabaya</div>
+        <span class="badge">Guru</span>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" title="Menu">☰</button>
+      <h1 class="page-title" id="pageTitle">Beranda SIAGA MIMI</h1>
+      <div class="clock" id="clock">--.--.--</div>
+    </header>
+    <main class="content" id="app"></main>
+  </div>
+</div>
+<script>
+'use strict';
+/* ================= Util ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+function todayStr(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function fmtTanggal(iso) { if (!iso) return '—'; const p = iso.split('-'); if (p.length !== 3) return iso; return p[2] + '/' + p[1] + '/' + p[0]; }
+
+/* ================= Database (localStorage) ================= */
+const KEY = 'siaga_db_v1';
+function defaultDB() {
+  return { cp_atp: [], modulAjar: [], prota: [], kktp: [], buku: [], media: [], lkm: [],
+    jurnal: [], siswa: [], absensi: {}, nilai: [], refleksi: [], kalender: [], dokumen: [], dokumenBerkas: [], guru: [],
+    settings: { appsScriptUrl: '' } };
+}
+function seed(d) {
+  d.modulAjar.push({ id: uid(), judul: 'Radius and Diameter of a Circle', mapel: 'Matematika', kelas: '6',
+    topik: 'Unsur-unsur Lingkaran: Jari-jari (Radius) dan Diameter', waktu: '2 x 35 menit',
+    model: 'Deep Learning + SOLO (PBL)', status: 'Selesai', tautan: 'https://canva.link/zdq4zfp9g1ww2cy' });
+  d.jurnal.push({ id: uid(), tanggal: '2026-11-15', kelas: '6', mapel: 'Matematika',
+    materi: 'Jari-jari (Radius) dan Diameter Lingkaran', kehadiran: '—',
+    catatan: 'Modul Ajar DLLP + SOLO selesai dibuat.' });
+  d.guru.push({ id: uid(), nama: 'Rudolf A. Luhukay, S.T.', nip: '', mapel: 'Matematika', kelas: '6',
+    peran: 'Admin', status: 'Aktif', hp: '' });
+}
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) { const d = defaultDB(); seed(d); localStorage.setItem(KEY, JSON.stringify(d)); return d; }
+    const d = JSON.parse(raw); const base = defaultDB();
+    for (const k in base) if (!(k in d)) d[k] = base[k];
+    if (!d.settings) d.settings = { appsScriptUrl: '' };
+    return d;
+  } catch (e) { const d = defaultDB(); seed(d); return d; }
+}
+let db = loadDB();
+function saveDB() { localStorage.setItem(KEY, JSON.stringify(db)); }
+
+/* ================= Daftar 34 Folder Dokumen & Berkas ================= */
+/* Nama persis dari gambar pengguna 15 Nov 2026; folder 34 terpotong di gambar — jangan ditebak. */
+const FOLDERS = [
+  { n: '01', nama: 'Program Tahunan' },
+  { n: '02', nama: 'Program Semester' },
+  { n: '03', nama: 'Program Awal Semester' },
+  { n: '04', nama: 'ATP' },
+  { n: '05', nama: 'Modul Ajar' },
+  { n: '06', nama: 'Bahan Ajar' },
+  { n: '07', nama: 'Soal Penugasan E-Learning' },
+  { n: '08', nama: 'SLM1' },
+  { n: '09', nama: 'STS' },
+  { n: '10', nama: 'SLM2' },
+  { n: '11', nama: 'SAS' },
+  { n: '12', nama: 'Project' },
+  { n: '13', nama: 'Project P5' },
+  { n: '14', nama: 'Program Tambahan Pelajaran' },
+  { n: '15', nama: 'Soal Try Out' },
+  { n: '16', nama: 'Jurnal Mengajar' },
+  { n: '17', nama: 'Jurnal Kelas' },
+  { n: '18', nama: 'Analisis dan daftar nilai SLM 1' },
+  { n: '19', nama: 'Soal Remidi SLM 1' },
+  { n: '20', nama: 'Analisis dan Daftar Nilai STS' },
+  { n: '21', nama: 'Analisis dan Daftar Nilai SLM 2' },
+  { n: '22', nama: 'Soal Remidi SLM 2' },
+  { n: '23', nama: 'Analisis dan Daftar Nilai SAS' },
+  { n: '24', nama: 'Daftar nilai tugas E-learning' },
+  { n: '25', nama: 'DKN' },
+  { n: '26', nama: 'Ledger' },
+  { n: '27', nama: 'Rekap Absensi Siswa' },
+  { n: '28', nama: 'Rekap Siswa terlambat' },
+  { n: '29', nama: 'Video Conference' },
+  { n: '30', nama: 'Virtual Agenda' },
+  { n: '31', nama: 'Rekap Alih Tugas' },
+  { n: '32', nama: 'Kasus & Khusus Kurikulum' },
+  { n: '33', nama: 'Kasus & Khusus Kesiswaan' },
+  { n: '34', nama: 'Daftar...' }
+];
+function folderByNum(nn) { return FOLDERS.find(f => f.n === nn) || null; }
+
+/* ================= Navigation ================= */
+const NAV = [
+  { section: 'DASHBOARD', items: [ { id: 'beranda', label: 'Beranda', icon: '🏠', route: '#/' } ] },
+  { section: 'PILAR 1: PERENCANAAN', items: [
+    { id: 'cp-atp', label: 'CP & ATP', icon: '🧩' },
+    { id: 'modul-ajar', label: 'Modul Ajar Deep Learning', icon: '📖' },
+    { id: 'prota', label: 'Prota & Promes', icon: '🗓️' },
+    { id: 'kktp', label: 'KKTP', icon: '✅' } ] },
+  { section: 'PILAR 2: BAHAN AJAR', items: [
+    { id: 'buku', label: 'Buku & Bahan Ajar', icon: '📚' },
+    { id: 'media', label: 'Media & Bahan Tayang', icon: '📺' },
+    { id: 'lkm', label: 'LKM Digital', icon: '📝' } ] },
+  { section: 'PILAR 3: PENGELOLAAN KELAS', items: [
+    { id: 'jurnal', label: 'Jurnal Mengajar', icon: '📒' },
+    { id: 'absensi', label: 'Absensi Siswa', icon: '🧑‍🤝‍🧑' },
+    { id: 'nilai', label: 'Daftar Nilai / Legger', icon: '📊' },
+    { id: 'refleksi', label: 'Refleksi & Bimbingan', icon: '✏️' } ] },
+  { section: 'PILAR 4: ADMINISTRASI', items: [
+    { id: 'kalender', label: 'Kalender & Minggu Efektif', icon: '📅' },
+    { id: 'dokumen', label: 'Dokumen Kepegawaian', icon: '🛡️' },
+    { id: 'data-user-guru', label: 'Data User Guru', icon: '👤' } ] },
+  { section: 'DOKUMEN & BERKAS', collapsible: true, items: FOLDERS.map(f => ({ id: 'dokumen-' + f.n, label: f.n + '. ' + f.nama, icon: '📁', route: '#/dokumen/' + f.n })) },
+  { section: 'PENGATURAN', items: [
+    { id: 'pengaturan', label: 'Pengaturan & Sinkronisasi', icon: '⚙️' } ] }
+];
+const TITLES = { beranda: 'Beranda SIAGA MIMI', 'cp-atp': 'CP & ATP', 'modul-ajar': 'Modul Ajar Deep Learning',
+  prota: 'Prota & Promes', kktp: 'KKTP', buku: 'Buku & Bahan Ajar', media: 'Media & Bahan Tayang',
+  lkm: 'LKM Digital', jurnal: 'Jurnal Mengajar', absensi: 'Absensi Siswa', nilai: 'Daftar Nilai / Legger',
+  refleksi: 'Refleksi & Bimbingan', kalender: 'Kalender & Minggu Efektif', dokumen: 'Dokumen Kepegawaian',
+  'data-user-guru': 'Data User Guru',
+  pengaturan: 'Pengaturan & Sinkronisasi' };
+FOLDERS.forEach(f => { TITLES['dokumen-' + f.n] = f.n + '. ' + f.nama; });
+function buildNav() {
+  let html = '';
+  NAV.forEach((sec, si) => {
+    const coll = sec.collapsible ? ' collapsible' : '';
+    const arrow = sec.collapsible ? '<span class="arrow">▾</span>' : '';
+    html += '<div class="nav-sec' + coll + '" data-group="' + si + '">' + esc(sec.section) + arrow + '</div>';
+    html += '<div class="nav-items" data-group="' + si + '">';
+    sec.items.forEach(it => {
+      const route = it.route || ('#/' + it.id);
+      html += '<a class="nav-item" data-nav="' + it.id + '" href="' + route + '"><span class="ic">' + it.icon + '</span><span>' + esc(it.label) + '</span></a>';
+    });
+    html += '</div>';
+  });
+  $('#nav').innerHTML = html;
+  document.querySelectorAll('.nav-sec.collapsible').forEach(el => {
+    el.addEventListener('click', () => {
+      const grp = document.querySelector('.nav-items[data-group="' + el.dataset.group + '"]');
+      if (!grp) return;
+      const collapsed = grp.classList.toggle('collapsed');
+      const ar = el.querySelector('.arrow');
+      if (ar) ar.textContent = collapsed ? '▸' : '▾';
+    });
+  });
+}
+function setActive(id) {
+  document.querySelectorAll('.nav-item').forEach(a => a.classList.toggle('active', a.dataset.nav === id));
+  $('#pageTitle').textContent = TITLES[id] || 'Beranda SIAGA MIMI';
+}
+
+/* ================= Generic CRUD ================= */
+/* ui keeps the open form state for the generic modules */
+let ui = { mod: null, editId: null, formOpen: false };
+
+function fieldInput(f, val) {
+  const v = esc(val == null ? '' : val);
+  if (f.t === 'textarea') return '<textarea name="' + f.n + '" rows="3">' + v + '</textarea>';
+  if (f.t === 'select') return '<select name="' + f.n + '">' + f.opts.map(o => '<option value="' + esc(o) + '"' + (o === val ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>';
+  if (f.t === 'date') return '<input type="date" name="' + f.n + '" value="' + v + '">';
+  if (f.t === 'number') return '<input type="number" name="' + f.n + '" value="' + v + '" min="0">';
+  if (f.t === 'url') return '<input type="url" name="' + f.n + '" value="' + v + '" placeholder="https://...">';
+  return '<input type="text" name="' + f.n + '" value="' + v + '"' + (f.req ? ' required' : '') + '>';
+}
+function formHTML(mod, rec) {
+  rec = rec || {};
+  let h = '<div class="card"><h3>' + (rec.id ? '✏️ Ubah ' : '＋ Tambah ') + esc(mod.title) + '</h3>';
+  h += '<form id="crudForm"><div class="form-grid">';
+  mod.fields.forEach(f => {
+    h += '<div class="' + (f.t === 'textarea' ? 'full' : '') + '"><label>' + esc(f.l) + (f.req ? ' *' : '') + '</label>' + fieldInput(f, rec[f.n]) + '</div>';
+  });
+  h += '</div><div class="form-actions"><button type="submit" class="btn btn-primary">💾 Simpan</button>'
+    + '<button type="button" class="btn btn-ghost" onclick="closeForm()">Batal</button></div></form></div>';
+  return h;
+}
+function closeForm() { ui.formOpen = false; ui.editId = null; router(); }
+function openForm(modKey, id) {
+  ui.mod = modKey; ui.editId = id || null; ui.formOpen = true; renderCrud(MODULES[modKey]);
+  setTimeout(() => { const el = document.querySelector('#crudForm'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30);
+}
+function deleteRow(modKey, id) {
+  const mod = MODULES[modKey];
+  if (!confirm('Hapus data "' + esc((db[mod.key].find(r => r.id === id) || {})[mod.fields[0].n] || '') + '"?')) return;
+  db[mod.key] = db[mod.key].filter(r => r.id !== id);
+  saveDB(); router();
+}
+function cellVal(rec, f) {
+  const v = rec[f.n];
+  if (v == null || v === '') return '—';
+  if (f.t === 'url' && String(v).indexOf('http') === 0) return '<a class="link" href="' + esc(v) + '" target="_blank" rel="noopener">🔗 Buka</a>';
+  if (f.t === 'date') return esc(fmtTanggal(v));
+  if (f.n === 'status') return '<span class="pill ' + (v === 'Selesai' ? 'pill-green' : 'pill-amber') + '">' + esc(v) + '</span>';
+  return esc(v);
+}
+function renderCrud(mod) {
+  const rows = db[mod.key];
+  let h = '<div class="page-head"><div><h2>' + esc(mod.title) + '</h2><p>' + esc(mod.desc) + '</p></div>'
+    + '<button class="btn btn-primary" onclick="openForm(\'' + mod.id + '\')">＋ Tambah ' + esc(mod.short) + '</button></div>';
+  if (ui.formOpen && ui.mod === mod.id) {
+    const rec = ui.editId ? rows.find(r => r.id === ui.editId) : null;
+    h += formHTML(mod, rec);
+  }
+  h += '<div class="card"><div class="table-wrap">';
+  if (!rows.length) {
+    h += '<div class="empty"><div class="big">📭</div><p>Belum ada data ' + esc(mod.title) + '.</p>'
+      + '<button class="btn btn-primary" onclick="openForm(\'' + mod.id + '\')">＋ Tambah ' + esc(mod.short) + '</button></div>';
+  } else {
+    h += '<table><thead><tr><th style="width:44px">No</th>';
+    mod.fields.forEach(f => { h += '<th>' + esc(f.l) + '</th>'; });
+    h += '<th style="width:130px">Aksi</th></tr></thead><tbody>';
+    rows.forEach((r, i) => {
+      h += '<tr><td>' + (i + 1) + '</td>';
+      mod.fields.forEach(f => { h += '<td>' + cellVal(r, f) + '</td>'; });
+      h += '<td><button class="btn btn-ghost btn-sm" onclick="openForm(\'' + mod.id + '\',\'' + r.id + '\')">Ubah</button> '
+        + '<button class="btn btn-danger btn-sm" onclick="deleteRow(\'' + mod.id + '\',\'' + r.id + '\')">Hapus</button></td></tr>';
+    });
+    h += '</tbody></table>';
+  }
+  h += '</div></div>';
+  $('#app').innerHTML = h;
+  const form = document.querySelector('#crudForm');
+  if (form) form.addEventListener('submit', ev => {
+    ev.preventDefault();
+    const fd = new FormData(form); const data = { id: ui.editId || uid() };
+    mod.fields.forEach(f => { data[f.n] = (fd.get(f.n) || '').toString().trim(); });
+    const idx = rows.findIndex(r => r.id === data.id);
+    if (idx >= 0) rows[idx] = data; else rows.push(data);
+    saveDB(); ui.formOpen = false; ui.editId = null; router();
+  });
+}
+
+/* ================= Module configs ================= */
+const MODULES = {
+  'cp-atp': { id: 'cp-atp', key: 'cp_atp', title: 'CP & ATP', short: 'CP & ATP',
+    desc: 'Capaian Pembelajaran dan Alur Tujuan Pembelajaran per mapel dan kelas.',
+    fields: [
+      { n: 'mapel', l: 'Mapel', t: 'text', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'cp', l: 'Capaian Pembelajaran (CP)', t: 'textarea', req: 1 },
+      { n: 'atp', l: 'Alur Tujuan Pembelajaran (ATP)', t: 'textarea', req: 1 } ] },
+  'modul-ajar': { id: 'modul-ajar', key: 'modulAjar', title: 'Modul Ajar Deep Learning', short: 'Modul Ajar',
+    desc: 'Daftar Modul Ajar Deep Learning yang sudah dibuat.',
+    fields: [
+      { n: 'judul', l: 'Judul', t: 'text', req: 1 },
+      { n: 'mapel', l: 'Mapel', t: 'text', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'topik', l: 'Topik', t: 'text', req: 1 },
+      { n: 'waktu', l: 'Alokasi Waktu', t: 'text', req: 1 },
+      { n: 'model', l: 'Model', t: 'text', req: 1 },
+      { n: 'status', l: 'Status', t: 'select', opts: ['Draft', 'Selesai'] },
+      { n: 'tautan', l: 'Tautan (opsional)', t: 'url' } ] },
+  'prota': { id: 'prota', key: 'prota', title: 'Prota & Promes', short: 'Prota / Promes',
+    desc: 'Program Tahunan dan Program Semester.',
+    fields: [
+      { n: 'jenis', l: 'Jenis', t: 'select', opts: ['Prota', 'Promes'] },
+      { n: 'mapel', l: 'Mapel', t: 'text', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'semester', l: 'Semester', t: 'select', opts: ['1 (Ganjil)', '2 (Genap)'] },
+      { n: 'tahun', l: 'Tahun Ajaran', t: 'text', req: 1 },
+      { n: 'ket', l: 'Keterangan', t: 'textarea' } ] },
+  'kktp': { id: 'kktp', key: 'kktp', title: 'KKTP', short: 'KKTP',
+    desc: 'Kriteria Ketercapaian Tujuan Pembelajaran.',
+    fields: [
+      { n: 'mapel', l: 'Mapel', t: 'text', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'kriteria', l: 'Kriteria', t: 'text', req: 1 },
+      { n: 'indikator', l: 'Indikator', t: 'textarea', req: 1 } ] },
+  'buku': { id: 'buku', key: 'buku', title: 'Buku & Bahan Ajar', short: 'Bahan Ajar',
+    desc: 'Koleksi buku dan bahan ajar yang digunakan.',
+    fields: [
+      { n: 'judul', l: 'Judul', t: 'text', req: 1 },
+      { n: 'jenis', l: 'Jenis', t: 'select', opts: ['Buku', 'Modul', 'Handout'] },
+      { n: 'mapel', l: 'Mapel', t: 'text', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'tautan', l: 'Tautan / File', t: 'url' } ] },
+  'media': { id: 'media', key: 'media', title: 'Media & Bahan Tayang', short: 'Media',
+    desc: 'Media pembelajaran dan bahan tayang (video, slide, gambar).',
+    fields: [
+      { n: 'judul', l: 'Judul', t: 'text', req: 1 },
+      { n: 'jenis', l: 'Jenis', t: 'select', opts: ['Video', 'Slide', 'Gambar'] },
+      { n: 'mapel', l: 'Mapel', t: 'text', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'tautan', l: 'Tautan', t: 'url' } ] },
+  'lkm': { id: 'lkm', key: 'lkm', title: 'LKM Digital', short: 'LKM',
+    desc: 'Lembar Kerja Murid digital.',
+    fields: [
+      { n: 'judul', l: 'Judul', t: 'text', req: 1 },
+      { n: 'mapel', l: 'Mapel', t: 'text', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'soal', l: 'Jumlah Soal', t: 'number' },
+      { n: 'tautan', l: 'Tautan', t: 'url' } ] },
+  'jurnal': { id: 'jurnal', key: 'jurnal', title: 'Jurnal Mengajar', short: 'Jurnal',
+    desc: 'Catatan harian kegiatan mengajar.',
+    fields: [
+      { n: 'tanggal', l: 'Tanggal', t: 'date', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'mapel', l: 'Mapel', t: 'text', req: 1 },
+      { n: 'materi', l: 'Materi', t: 'text', req: 1 },
+      { n: 'kehadiran', l: 'Kehadiran (hadir/total)', t: 'text' },
+      { n: 'catatan', l: 'Catatan', t: 'textarea' } ] },
+  'refleksi': { id: 'refleksi', key: 'refleksi', title: 'Refleksi & Bimbingan', short: 'Refleksi',
+    desc: 'Refleksi pembelajaran dan catatan bimbingan siswa.',
+    fields: [
+      { n: 'tanggal', l: 'Tanggal', t: 'date', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'jenis', l: 'Jenis', t: 'select', opts: ['Refleksi', 'Bimbingan'] },
+      { n: 'isi', l: 'Isi', t: 'textarea', req: 1 },
+      { n: 'tindak', l: 'Tindak Lanjut', t: 'textarea' } ] },
+  'dokumen': { id: 'dokumen', key: 'dokumen', title: 'Dokumen Kepegawaian', short: 'Dokumen',
+    desc: 'Arsip dokumen kepegawaian guru.',
+    fields: [
+      { n: 'nama', l: 'Nama Dokumen', t: 'text', req: 1 },
+      { n: 'jenis', l: 'Jenis', t: 'select', opts: ['SK', 'Ijazah', 'Sertifikat', 'Lainnya'] },
+      { n: 'tanggal', l: 'Tanggal', t: 'date' },
+      { n: 'ket', l: 'Keterangan', t: 'textarea' } ] },
+  'data-user-guru': { id: 'data-user-guru', key: 'guru', title: 'Data User Guru', short: 'Guru',
+    desc: 'Data pengguna guru SIAGA MIMI: nama, NIP, mata pelajaran, kelas, peran, status, dan nomor HP.',
+    fields: [
+      { n: 'nama', l: 'Nama', t: 'text', req: 1 },
+      { n: 'nip', l: 'NIP', t: 'text' },
+      { n: 'mapel', l: 'Mata Pelajaran', t: 'text', req: 1 },
+      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
+      { n: 'peran', l: 'Peran', t: 'select', opts: ['Admin', 'Guru'] },
+      { n: 'status', l: 'Status', t: 'select', opts: ['Aktif', 'Tidak Aktif'] },
+      { n: 'hp', l: 'No. HP', t: 'text' } ] }
+};
+
+/* ================= Dokumen & Berkas (per folder) ================= */
+/* Satu halaman generik untuk tiap folder 01–34; data di koleksi 'dokumenBerkas'
+   (nama 'dokumen' sudah dipakai Dokumen Kepegawaian, jadi dipakai nama lain). */
+let dokUi = { folder: null, editId: null, formOpen: false };
+function dokFormHTML(nn, rec) {
+  rec = rec || {};
+  const jenisOpts = ['File', 'Link', 'Video', 'Lainnya'];
+  let h = '<div class="card"><h3>' + (rec.id ? '✏️ Ubah Dokumen' : '＋ Tambah Dokumen') + '</h3>'
+    + '<form id="dokForm"><div class="form-grid">'
+    + '<div><label>Nama Dokumen *</label><input type="text" name="nama" required value="' + esc(rec.nama || '') + '"></div>'
+    + '<div><label>Jenis</label><select name="jenis">' + jenisOpts.map(o => '<option value="' + o + '"' + (rec.jenis === o ? ' selected' : '') + '>' + o + '</option>').join('') + '</select></div>'
+    + '<div><label>Tautan</label><input type="url" name="tautan" placeholder="https://..." value="' + esc(rec.tautan || '') + '"></div>'
+    + '<div><label>Tanggal</label><input type="date" name="tanggal" value="' + esc(rec.tanggal || '') + '"></div>'
+    + '<div class="full"><label>Keterangan</label><textarea name="keterangan" rows="3">' + esc(rec.keterangan || '') + '</textarea></div>'
+    + '</div><div class="form-actions"><button type="submit" class="btn btn-primary">💾 Simpan</button>'
+    + '<button type="button" class="btn btn-ghost" onclick="closeDokForm()">Batal</button></div></form></div>';
+  return h;
+}
+function openDokForm(nn, id) {
+  dokUi.folder = nn; dokUi.editId = id || null; dokUi.formOpen = true; renderDokumen(nn);
+  setTimeout(() => { const el = document.querySelector('#dokForm'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30);
+}
+function closeDokForm() { dokUi.formOpen = false; dokUi.editId = null; router(); }
+function deleteDok(nn, id) {
+  const r = db.dokumenBerkas.find(x => x.id === id);
+  if (!r || !confirm('Hapus dokumen "' + r.nama + '"?')) return;
+  db.dokumenBerkas = db.dokumenBerkas.filter(x => x.id !== id);
+  saveDB(); router();
+}
+function renderDokumen(nn) {
+  const f = folderByNum(nn);
+  if (!f) return;
+  const rows = db.dokumenBerkas.filter(r => r.folder === nn);
+  let h = '<div class="page-head"><div><h2>📁 ' + esc(nn + '. ' + f.nama) + '</h2><p>Dokumen dan berkas pada folder ' + esc(nn) + ' — ' + esc(f.nama) + '.</p></div>'
+    + '<button class="btn btn-primary" onclick="openDokForm(\'' + nn + '\')">＋ Tambah Dokumen</button></div>';
+  if (dokUi.formOpen && dokUi.folder === nn) {
+    const rec = dokUi.editId ? db.dokumenBerkas.find(r => r.id === dokUi.editId) : null;
+    h += dokFormHTML(nn, rec);
+  }
+  h += '<div class="card"><div class="table-wrap">';
+  if (!rows.length) {
+    h += '<div class="empty"><div class="big">📭</div><p>Belum ada dokumen di folder ' + esc(nn + '. ' + f.nama) + '.</p>'
+      + '<button class="btn btn-primary" onclick="openDokForm(\'' + nn + '\')">＋ Tambah Dokumen</button></div>';
+  } else {
+    h += '<table><thead><tr><th style="width:44px">No</th><th>Nama Dokumen</th><th>Jenis</th><th>Tautan</th><th>Tanggal</th><th>Keterangan</th><th style="width:130px">Aksi</th></tr></thead><tbody>';
+    rows.forEach((r, i) => {
+      const tautan = r.tautan && /^https?:\/\//i.test(r.tautan)
+        ? '<a class="link" href="' + esc(r.tautan) + '" target="_blank" rel="noopener">🔗 Buka</a>'
+        : esc(r.tautan || '—');
+      h += '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nama) + '</td><td>' + esc(r.jenis) + '</td><td>' + tautan + '</td><td>' + esc(fmtTanggal(r.tanggal)) + '</td><td>' + esc(r.keterangan || '—') + '</td>'
+        + '<td><button class="btn btn-ghost btn-sm" onclick="openDokForm(\'' + nn + '\',\'' + r.id + '\')">Ubah</button> '
+        + '<button class="btn btn-danger btn-sm" onclick="deleteDok(\'' + nn + '\',\'' + r.id + '\')">Hapus</button></td></tr>';
+    });
+    h += '</tbody></table>';
+  }
+  h += '</div></div>';
+  $('#app').innerHTML = h;
+  const form = document.querySelector('#dokForm');
+  if (form) form.addEventListener('submit', ev => {
+    ev.preventDefault();
+    const fd = new FormData(form);
+    const data = { id: dokUi.editId || uid(), folder: nn,
+      nama: (fd.get('nama') || '').toString().trim(),
+      jenis: (fd.get('jenis') || '').toString(),
+      tautan: (fd.get('tautan') || '').toString().trim(),
+      tanggal: (fd.get('tanggal') || '').toString(),
+      keterangan: (fd.get('keterangan') || '').toString().trim() };
+    const idx = db.dokumenBerkas.findIndex(r => r.id === data.id);
+    if (idx >= 0) db.dokumenBerkas[idx] = data; else db.dokumenBerkas.push(data);
+    saveDB(); dokUi.formOpen = false; dokUi.editId = null; router();
+  });
+}
+
+/* ================= Beranda ================= */
+function absensiHariIni() {
+  const t = todayStr();
+  let total = 0, hadir = 0;
+  Object.keys(db.absensi).forEach(k => {
+    if (k.indexOf(t + '|') === 0) {
+      Object.values(db.absensi[k]).forEach(st => { total++; if (st === 'Hadir') hadir++; });
+    }
+  });
+  return { total, hadir, pct: total ? Math.round(hadir / total * 100) : 0 };
+}
+function renderBeranda() {
+  const a = absensiHariIni();
+  const dok = db.dokumen.length + db.buku.length + (db.dokumenBerkas ? db.dokumenBerkas.length : 0);
+  let h = '<div class="stats">'
+    + '<div class="stat teal"><div><div class="lbl">Total Modul Ajar</div><div class="num">' + db.modulAjar.length + '</div></div><div class="sic">📖</div></div>'
+    + '<div class="stat blue"><div><div class="lbl">Jurnal Mengajar</div><div class="num">' + db.jurnal.length + '</div></div><div class="sic">📒</div></div>'
+    + '<div class="stat orange"><div><div class="lbl">Absensi Hari Ini</div><div class="num">' + a.pct + '%</div>'
+    + (a.total ? '<div class="sub">' + a.hadir + ' dari ' + a.total + ' siswa hadir</div>' : '<div class="sub">Belum ada absensi hari ini</div>') + '</div><div class="sic">🧑‍🤝‍🧑</div></div>'
+    + '<div class="stat olive"><div><div class="lbl">Dokumen Berkas</div><div class="num">' + dok + '</div></div><div class="sic">📁</div></div>'
+    + '</div>';
+  h += '<div class="card welcome"><h2>✨ Selamat Datang di SIAGA MIMI</h2>'
+    + '<p>Platform Terintegrasi Administrasi Guru Kurikulum Merdeka. Pilih modul di sidebar kiri untuk mulai mengelola perangkat pembelajaran, bahan ajar, dan dokumentasi kelas secara real-time.</p></div>';
+  h += '<div class="row-flex">';
+  h += '<div class="card"><h3>📖 Modul Ajar Terbaru</h3>';
+  if (!db.modulAjar.length) h += '<p class="muted">Belum ada Modul Ajar. <a href="#/modul-ajar">Tambah Modul Ajar →</a></p>';
+  else db.modulAjar.slice(-3).reverse().forEach(m => {
+    h += '<p style="margin-bottom:8px"><strong>' + esc(m.judul) + '</strong><br><span class="muted">' + esc(m.mapel) + ' • Kelas ' + esc(m.kelas) + ' • ' + esc(m.waktu || '') + ' • </span><span class="pill ' + (m.status === 'Selesai' ? 'pill-green' : 'pill-amber') + '">' + esc(m.status || 'Draft') + '</span></p>';
+  });
+  h += '</div>';
+  h += '<div class="card"><h3>📒 Jurnal Mengajar Terbaru</h3>';
+  if (!db.jurnal.length) h += '<p class="muted">Belum ada Jurnal Mengajar. <a href="#/jurnal">Tambah Jurnal →</a></p>';
+  else db.jurnal.slice(-3).reverse().forEach(j => {
+    h += '<p style="margin-bottom:8px"><strong>' + esc(fmtTanggal(j.tanggal)) + ' — Kelas ' + esc(j.kelas) + '</strong><br><span class="muted">' + esc(j.mapel) + ' • ' + esc(j.materi) + '</span></p>';
+  });
+  h += '</div></div>';
+  h += '<div class="card"><h3>📊 Ringkasan Data</h3><p class="muted" style="line-height:1.9">'
+    + 'CP & ATP: <strong>' + db.cp_atp.length + '</strong> &nbsp;•&nbsp; Prota & Promes: <strong>' + db.prota.length + '</strong> &nbsp;•&nbsp; KKTP: <strong>' + db.kktp.length + '</strong><br>'
+    + 'Buku & Bahan Ajar: <strong>' + db.buku.length + '</strong> &nbsp;•&nbsp; Media & Bahan Tayang: <strong>' + db.media.length + '</strong> &nbsp;•&nbsp; LKM Digital: <strong>' + db.lkm.length + '</strong><br>'
+    + 'Siswa terdaftar: <strong>' + db.siswa.length + '</strong> &nbsp;•&nbsp; Nilai tersimpan: <strong>' + db.nilai.length + '</strong> &nbsp;•&nbsp; Refleksi & Bimbingan: <strong>' + db.refleksi.length + '</strong> &nbsp;•&nbsp; Dokumen Kepegawaian: <strong>' + db.dokumen.length + '</strong></p></div>';
+  $('#app').innerHTML = h;
+}
+
+/* ================= Absensi Siswa ================= */
+let absState = { tanggal: todayStr(), kelas: '' };
+function kelasList() {
+  const s = new Set(db.siswa.map(x => x.kelas).filter(Boolean));
+  return Array.from(s).sort();
+}
+function renderAbsensi() {
+  const classes = kelasList();
+  if (!absState.kelas && classes.length) absState.kelas = classes[0];
+  let h = '<div class="page-head"><div><h2>Absensi Siswa</h2><p>Kelola daftar siswa, lalu tandai kehadiran per tanggal dan kelas.</p></div></div>';
+  /* --- Daftar Siswa --- */
+  h += '<div class="card"><h3>👥 Daftar Siswa</h3>'
+    + '<form id="siswaForm"><div class="form-grid">'
+    + '<div><label>Nama Siswa *</label><input type="text" name="nama" required></div>'
+    + '<div><label>NIS</label><input type="text" name="nis"></div>'
+    + '<div><label>Kelas *</label><input type="text" name="kelas" required placeholder="contoh: 6"></div>'
+    + '</div><div class="form-actions"><button type="submit" class="btn btn-primary">＋ Tambah Siswa</button></div></form>';
+  if (!db.siswa.length) {
+    h += '<div class="empty"><div class="big">👥</div><p>Belum ada siswa terdaftar. Tambahkan siswa dulu agar absensi bisa diisi.</p></div>';
+  } else {
+    h += '<div class="table-wrap" style="margin-top:14px"><table><thead><tr><th style="width:44px">No</th><th>Nama</th><th>NIS</th><th>Kelas</th><th style="width:90px">Aksi</th></tr></thead><tbody>';
+    db.siswa.forEach((s, i) => {
+      h += '<tr><td>' + (i + 1) + '</td><td>' + esc(s.nama) + '</td><td>' + esc(s.nis || '—') + '</td><td>' + esc(s.kelas) + '</td>'
+        + '<td><button class="btn btn-danger btn-sm" onclick="hapusSiswa(\'' + s.id + '\')">Hapus</button></td></tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+  h += '</div>';
+  /* --- Absensi harian --- */
+  h += '<div class="card"><h3>🗓️ Absensi Harian</h3>';
+  if (!classes.length) {
+    h += '<p class="muted">Tambahkan siswa pada Daftar Siswa di atas untuk mulai mengisi absensi.</p>';
+  } else {
+    h += '<div class="form-grid" style="margin-bottom:14px">'
+      + '<div><label>Tanggal</label><input type="date" id="absTgl" value="' + esc(absState.tanggal) + '"></div>'
+      + '<div><label>Kelas</label><select id="absKelas">' + classes.map(c => '<option value="' + esc(c) + '"' + (c === absState.kelas ? ' selected' : '') + '>Kelas ' + esc(c) + '</option>').join('') + '</select></div></div>';
+    const key = absState.tanggal + '|' + absState.kelas;
+    const rec = db.absensi[key] || {};
+    const list = db.siswa.filter(s => s.kelas === absState.kelas);
+    if (!list.length) {
+      h += '<p class="muted">Belum ada siswa di Kelas ' + esc(absState.kelas) + '.</p>';
+    } else {
+      let tot = 0, had = 0;
+      list.forEach(s => { const st = rec[s.id]; if (st) { tot++; if (st === 'Hadir') had++; } });
+      const pct = tot ? Math.round(had / tot * 100) : 0;
+      h += '<p style="margin-bottom:12px"><strong>Kehadiran ' + esc(fmtTanggal(absState.tanggal)) + ' — Kelas ' + esc(absState.kelas) + ': ' + pct + '%</strong> <span class="muted">(' + had + ' hadir dari ' + tot + ' tercatat)</span></p>';
+      h += '<div class="table-wrap"><table><thead><tr><th style="width:44px">No</th><th>Nama</th><th>NIS</th><th>Status</th></tr></thead><tbody>';
+      list.forEach((s, i) => {
+        const st = rec[s.id] || '';
+        h += '<tr><td>' + (i + 1) + '</td><td>' + esc(s.nama) + '</td><td>' + esc(s.nis || '—') + '</td><td><div class="st-btns">'
+          + ['Hadir', 'Sakit', 'Izin', 'Alpa'].map(x => '<button class="st-btn' + (st === x ? ' on-' + x.toLowerCase() : '') + '" onclick="setAbsen(\'' + s.id + '\',\'' + x + '\')">' + x + '</button>').join('')
+          + '</div></td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+  }
+  h += '</div>';
+  $('#app').innerHTML = h;
+  const sf = document.querySelector('#siswaForm');
+  if (sf) sf.addEventListener('submit', ev => {
+    ev.preventDefault();
+    const fd = new FormData(sf);
+    db.siswa.push({ id: uid(), nama: (fd.get('nama') || '').toString().trim(), nis: (fd.get('nis') || '').toString().trim(), kelas: (fd.get('kelas') || '').toString().trim() });
+    saveDB(); router();
+  });
+  const tg = document.querySelector('#absTgl');
+  if (tg) tg.addEventListener('change', () => { absState.tanggal = tg.value || todayStr(); renderAbsensi(); });
+  const kl = document.querySelector('#absKelas');
+  if (kl) kl.addEventListener('change', () => { absState.kelas = kl.value; renderAbsensi(); });
+}
+function hapusSiswa(id) {
+  const s = db.siswa.find(x => x.id === id);
+  if (!s || !confirm('Hapus siswa "' + s.nama + '" beserta data absensi dan nilainya?')) return;
+  db.siswa = db.siswa.filter(x => x.id !== id);
+  db.nilai = db.nilai.filter(n => n.siswaId !== id);
+  Object.keys(db.absensi).forEach(k => { delete db.absensi[k][id]; });
+  saveDB(); router();
+}
+function setAbsen(siswaId, status) {
+  const key = absState.tanggal + '|' + absState.kelas;
+  if (!db.absensi[key]) db.absensi[key] = {};
+  db.absensi[key][siswaId] = status;
+  saveDB(); renderAbsensi();
+}
+
+/* ================= Daftar Nilai / Legger ================= */
+let nilaiState = { kelas: '', editId: null };
+function predikat(rata) {
+  if (rata == null) return '—';
+  if (rata >= 90) return 'A';
+  if (rata >= 80) return 'B';
+  if (rata >= 70) return 'C';
+  return 'D';
+}
+function rataNilai(n) {
+  const vals = [n.tugas, n.uts, n.uas].map(v => parseFloat(v)).filter(v => !isNaN(v));
+  if (!vals.length) return null;
+  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10;
+}
+function renderNilai() {
+  const classes = kelasList();
+  if (!nilaiState.kelas && classes.length) nilaiState.kelas = classes[0];
+  let h = '<div class="page-head"><div><h2>Daftar Nilai / Legger</h2><p>Pilih kelas, isi nilai Tugas, UTS, dan UAS. Rata-rata dan predikat dihitung otomatis.</p></div></div>';
+  if (!classes.length) {
+    h += '<div class="card"><div class="empty"><div class="big">📊</div><p>Belum ada siswa terdaftar. Tambahkan siswa dulu di menu <a href="#/absensi">Absensi Siswa</a>.</p></div></div>';
+    $('#app').innerHTML = h; return;
+  }
+  h += '<div class="card"><label>Kelas</label><select id="nilaiKelas" style="max-width:260px">'
+    + classes.map(c => '<option value="' + esc(c) + '"' + (c === nilaiState.kelas ? ' selected' : '') + '>Kelas ' + esc(c) + '</option>').join('') + '</select></div>';
+  const list = db.siswa.filter(s => s.kelas === nilaiState.kelas);
+  const rows = db.nilai.filter(n => n.kelas === nilaiState.kelas);
+  const tanpaNilai = list.filter(s => !rows.some(n => n.siswaId === s.id));
+  /* --- form --- */
+  h += '<div class="card"><h3>' + (nilaiState.editId ? '✏️ Ubah Nilai' : '＋ Tambah Nilai') + '</h3>';
+  if (!list.length) {
+    h += '<p class="muted">Belum ada siswa di Kelas ' + esc(nilaiState.kelas) + '.</p>';
+  } else if (!tanpaNilai.length && !nilaiState.editId) {
+    h += '<p class="muted">Semua siswa di kelas ini sudah memiliki nilai. Pilih "Ubah" pada baris nilai untuk mengoreksi.</p>';
+  } else {
+    const rec = nilaiState.editId ? rows.find(n => n.id === nilaiState.editId) : null;
+    const opts = rec
+      ? '<option value="' + esc(rec.siswaId) + '">' + esc(rec.nama) + '</option>'
+      : tanpaNilai.map(s => '<option value="' + esc(s.id) + '">' + esc(s.nama) + (s.nis ? ' (' + esc(s.nis) + ')' : '') + '</option>').join('');
+    h += '<form id="nilaiForm"><div class="form-grid">'
+      + '<div><label>Siswa *</label><select name="siswaId">' + opts + '</select></div>'
+      + '<div><label>Keterangan</label><input type="text" name="ket" value="' + esc(rec ? rec.ket || '' : '') + '" placeholder="contoh: Semester 1"></div>'
+      + '<div><label>Nilai Tugas (0–100)</label><input type="number" name="tugas" min="0" max="100" value="' + esc(rec ? rec.tugas || '' : '') + '"></div>'
+      + '<div><label>Nilai UTS (0–100)</label><input type="number" name="uts" min="0" max="100" value="' + esc(rec ? rec.uts || '' : '') + '"></div>'
+      + '<div><label>Nilai UAS (0–100)</label><input type="number" name="uas" min="0" max="100" value="' + esc(rec ? rec.uas || '' : '') + '"></div>'
+      + '</div><div class="form-actions"><button type="submit" class="btn btn-primary">💾 Simpan Nilai</button>'
+      + (nilaiState.editId ? '<button type="button" class="btn btn-ghost" onclick="nilaiState.editId=null;renderNilai()">Batal</button>' : '') + '</div></form>';
+  }
+  h += '</div>';
+  /* --- table --- */
+  h += '<div class="card"><div class="table-wrap">';
+  if (!rows.length) {
+    h += '<div class="empty"><div class="big">📊</div><p>Belum ada nilai untuk Kelas ' + esc(nilaiState.kelas) + '.</p></div>';
+  } else {
+    h += '<table><thead><tr><th style="width:44px">No</th><th>Nama</th><th>NIS</th><th>Tugas</th><th>UTS</th><th>UAS</th><th>Rata-rata</th><th>Predikat</th><th>Keterangan</th><th style="width:130px">Aksi</th></tr></thead><tbody>';
+    rows.forEach((n, i) => {
+      const r = rataNilai(n);
+      h += '<tr><td>' + (i + 1) + '</td><td>' + esc(n.nama) + '</td><td>' + esc(n.nis || '—') + '</td>'
+        + '<td>' + esc(n.tugas || '—') + '</td><td>' + esc(n.uts || '—') + '</td><td>' + esc(n.uas || '—') + '</td>'
+        + '<td><strong>' + (r == null ? '—' : r) + '</strong></td><td><span class="pill ' + (r == null ? 'pill-grey' : r >= 80 ? 'pill-green' : r >= 70 ? 'pill-blue' : 'pill-amber') + '">' + predikat(r) + '</span></td>'
+        + '<td>' + esc(n.ket || '—') + '</td>'
+        + '<td><button class="btn btn-ghost btn-sm" onclick="editNilai(\'' + n.id + '\')">Ubah</button> '
+        + '<button class="btn btn-danger btn-sm" onclick="hapusNilai(\'' + n.id + '\')">Hapus</button></td></tr>';
+    });
+    h += '</tbody></table>';
+  }
+  h += '</div></div>';
+  $('#app').innerHTML = h;
+  const kl = document.querySelector('#nilaiKelas');
+  if (kl) kl.addEventListener('change', () => { nilaiState.kelas = kl.value; nilaiState.editId = null; renderNilai(); });
+  const nf = document.querySelector('#nilaiForm');
+  if (nf) nf.addEventListener('submit', ev => {
+    ev.preventDefault();
+    const fd = new FormData(nf);
+    const sid = (fd.get('siswaId') || '').toString();
+    const s = db.siswa.find(x => x.id === sid);
+    if (!s) return;
+    const data = { id: nilaiState.editId || uid(), siswaId: s.id, nama: s.nama, nis: s.nis || '', kelas: nilaiState.kelas,
+      tugas: (fd.get('tugas') || '').toString().trim(), uts: (fd.get('uts') || '').toString().trim(),
+      uas: (fd.get('uas') || '').toString().trim(), ket: (fd.get('ket') || '').toString().trim() };
+    const idx = db.nilai.findIndex(n => n.id === data.id);
+    if (idx >= 0) db.nilai[idx] = data; else db.nilai.push(data);
+    saveDB(); nilaiState.editId = null; renderNilai();
+  });
+}
+function editNilai(id) { nilaiState.editId = id; renderNilai(); setTimeout(() => { const el = document.querySelector('#nilaiForm'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 30); }
+function hapusNilai(id) {
+  const n = db.nilai.find(x => x.id === id);
+  if (!n || !confirm('Hapus nilai "' + n.nama + '"?')) return;
+  db.nilai = db.nilai.filter(x => x.id !== id);
+  saveDB(); renderNilai();
+}
+
+/* ================= Kalender & Minggu Efektif ================= */
+let calState = { y: new Date().getFullYear(), m: new Date().getMonth(), editId: null };
+const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+function fmtBulan(ym) {
+  if (!ym) return '—';
+  const p = ym.split('-');
+  if (p.length !== 2) return ym;
+  return BULAN[parseInt(p[1], 10) - 1] + ' ' + p[0];
+}
+function renderKalender() {
+  const y = calState.y, m = calState.m;
+  const offset = (new Date(y, m, 1).getDay() + 6) % 7;
+  const daysIn = new Date(y, m + 1, 0).getDate();
+  const daysPrev = new Date(y, m, 0).getDate();
+  const today = todayStr();
+  const jurnalDates = new Set(db.jurnal.map(j => j.tanggal));
+  let cells = '';
+  ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].forEach(d => { cells += '<div class="cal-dow">' + d + '</div>'; });
+  for (let i = 0; i < offset; i++) cells += '<div class="cal-day other">' + (daysPrev - offset + 1 + i) + '</div>';
+  for (let d = 1; d <= daysIn; d++) {
+    const iso = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    cells += '<div class="cal-day' + (iso === today ? ' today' : '') + '">' + d
+      + (jurnalDates.has(iso) ? '<br><span class="dot" title="Ada jurnal mengajar"></span>' : '') + '</div>';
+  }
+  const tail = (7 - (offset + daysIn) % 7) % 7;
+  for (let i = 1; i <= tail; i++) cells += '<div class="cal-day other">' + i + '</div>';
+
+  let h = '<div class="page-head"><div><h2>Kalender & Minggu Efektif</h2><p>Kalender akademik dan rekap minggu efektif per bulan.</p></div></div>';
+  h += '<div class="card"><div class="cal-head"><h3>📅 ' + BULAN[m] + ' ' + y + '</h3>'
+    + '<div><button class="btn btn-ghost btn-sm" onclick="geserBulan(-1)">‹ Bulan Lalu</button> '
+    + '<button class="btn btn-ghost btn-sm" onclick="geserBulan(1)">Bulan Depan ›</button></div></div>'
+    + '<div class="cal-grid">' + cells + '</div>'
+    + '<p class="muted" style="margin-top:10px">● Titik jingga = ada Jurnal Mengajar pada tanggal tersebut. Hari ini ditandai warna teal.</p></div>';
+
+  const total = db.kalender.reduce((a, r) => a + (parseInt(r.jumlah, 10) || 0), 0);
+  const rec = calState.editId ? db.kalender.find(r => r.id === calState.editId) : null;
+  h += '<div class="card"><h3>🗓️ Minggu Efektif &nbsp;<span class="pill pill-blue">Total: ' + total + ' minggu</span></h3>'
+    + '<form id="meForm"><div class="form-grid">'
+    + '<div><label>Bulan *</label><input type="month" name="bulan" required value="' + esc(rec ? rec.bulan : '') + '"></div>'
+    + '<div><label>Jumlah Minggu Efektif *</label><input type="number" name="jumlah" min="0" required value="' + esc(rec ? rec.jumlah : '') + '"></div>'
+    + '<div class="full"><label>Keterangan</label><input type="text" name="ket" value="' + esc(rec ? rec.ket || '' : '') + '"></div>'
+    + '</div><div class="form-actions"><button type="submit" class="btn btn-primary">💾 Simpan</button>'
+    + (rec ? '<button type="button" class="btn btn-ghost" onclick="calState.editId=null;renderKalender()">Batal</button>' : '') + '</div></form>';
+  if (!db.kalender.length) {
+    h += '<div class="empty"><div class="big">🗓️</div><p>Belum ada data minggu efektif.</p></div>';
+  } else {
+    h += '<div class="table-wrap" style="margin-top:14px"><table><thead><tr><th style="width:44px">No</th><th>Bulan</th><th>Jumlah Minggu Efektif</th><th>Keterangan</th><th style="width:130px">Aksi</th></tr></thead><tbody>';
+    db.kalender.forEach((r, i) => {
+      h += '<tr><td>' + (i + 1) + '</td><td>' + esc(fmtBulan(r.bulan)) + '</td><td>' + esc(r.jumlah) + '</td><td>' + esc(r.ket || '—') + '</td>'
+        + '<td><button class="btn btn-ghost btn-sm" onclick="editME(\'' + r.id + '\')">Ubah</button> '
+        + '<button class="btn btn-danger btn-sm" onclick="hapusME(\'' + r.id + '\')">Hapus</button></td></tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+  h += '</div>';
+  $('#app').innerHTML = h;
+  const mf = document.querySelector('#meForm');
+  if (mf) mf.addEventListener('submit', ev => {
+    ev.preventDefault();
+    const fd = new FormData(mf);
+    const data = { id: calState.editId || uid(), bulan: (fd.get('bulan') || '').toString(), jumlah: (fd.get('jumlah') || '').toString().trim(), ket: (fd.get('ket') || '').toString().trim() };
+    const idx = db.kalender.findIndex(r => r.id === data.id);
+    if (idx >= 0) db.kalender[idx] = data; else db.kalender.push(data);
+    saveDB(); calState.editId = null; renderKalender();
+  });
+}
+function geserBulan(d) {
+  calState.m += d;
+  if (calState.m < 0) { calState.m = 11; calState.y--; }
+  if (calState.m > 11) { calState.m = 0; calState.y++; }
+  renderKalender();
+}
+function editME(id) { calState.editId = id; renderKalender(); }
+function hapusME(id) {
+  if (!confirm('Hapus data minggu efektif ini?')) return;
+  db.kalender = db.kalender.filter(r => r.id !== id);
+  saveDB(); renderKalender();
+}
+
+/* ================= Pengaturan & Sinkronisasi ================= */
+const SYNC_COLS = ['cp_atp', 'modulAjar', 'prota', 'kktp', 'buku', 'media', 'lkm', 'jurnal', 'siswa', 'absensi', 'nilai', 'refleksi', 'kalender', 'dokumen', 'dokumenBerkas', 'guru'];
+function rowsFor(c) {
+  if (c === 'absensi') {
+    const rows = [];
+    Object.keys(db.absensi).forEach(k => {
+      const parts = k.split('|');
+      Object.keys(db.absensi[k]).forEach(sid => {
+        const s = db.siswa.find(x => x.id === sid);
+        rows.push({ tanggal: parts[0], kelas: parts[1], siswaId: sid, nama: s ? s.nama : '', status: db.absensi[k][sid] });
+      });
+    });
+    return rows;
+  }
+  return db[c] || [];
+}
+function setSyncStatus(msg, cls) {
+  const el = document.querySelector('#syncStatus');
+  if (el) { el.textContent = msg; el.className = cls || ''; }
+}
+function renderPengaturan() {
+  let h = '<div class="page-head"><div><h2>Pengaturan & Sinkronisasi</h2><p>Sambungkan aplikasi ke Google Sheet melalui Apps Script, atau cadangkan data sebagai file JSON.</p></div></div>';
+  h += '<div class="card"><h3>🔗 Google Sheet (Apps Script)</h3>'
+    + '<p class="muted" style="margin-bottom:12px">Tempel URL Web App dari Apps Script (file <strong>Code.gs</strong>). Petunjuk lengkap ada di komentar atas file Code.gs: buat Sheet "SIAGA MIMI" → Extensions &gt; Apps Script → tempel Code.gs → Deploy &gt; Web app (Execute as Me, Anyone) → salin URL ke sini.</p>'
+    + '<label>URL Web App Apps Script</label>'
+    + '<input type="url" id="gsUrl" placeholder="https://script.google.com/macros/s/.../exec" value="' + esc(db.settings.appsScriptUrl || '') + '">'
+    + '<div class="form-actions"><button class="btn btn-primary" onclick="simpanUrl()">💾 Simpan URL</button></div>'
+    + '<div class="form-actions"><button class="btn btn-primary" id="btnSaveSheet">⬆️ Simpan ke Google Sheet</button>'
+    + '<button class="btn btn-primary" id="btnLoadSheet">⬇️ Muat dari Google Sheet</button></div>'
+    + '<p id="syncStatus" style="margin-top:12px"></p></div>';
+  h += '<div class="card"><h3>💾 Cadangan Data (JSON)</h3>'
+    + '<p class="muted" style="margin-bottom:12px">Ekspor seluruh data aplikasi ke file JSON, atau impor kembali dari file cadangan.</p>'
+    + '<div class="form-actions"><button class="btn btn-ghost" id="btnExport">⬇️ Ekspor Data (JSON)</button>'
+    + '<label class="btn btn-ghost" for="importFile" style="cursor:pointer">⬆️ Impor Data (JSON)</label>'
+    + '<input type="file" id="importFile" accept=".json,application/json" style="display:none">'
+    + '<button class="btn btn-danger" id="btnWipe">🗑️ Hapus Semua Data</button></div>'
+    + '<p id="backupStatus" style="margin-top:12px"></p></div>';
+  $('#app').innerHTML = h;
+  document.querySelector('#btnSaveSheet').addEventListener('click', syncSave);
+  document.querySelector('#btnLoadSheet').addEventListener('click', syncLoad);
+  document.querySelector('#btnExport').addEventListener('click', exportJSON);
+  document.querySelector('#importFile').addEventListener('change', importJSON);
+  document.querySelector('#btnWipe').addEventListener('click', wipeAll);
+}
+function simpanUrl() {
+  const v = (document.querySelector('#gsUrl').value || '').trim();
+  db.settings.appsScriptUrl = v;
+  saveDB();
+  setSyncStatus(v ? 'URL Web App tersimpan.' : 'URL dikosongkan.', 'status-ok');
+}
+async function syncSave() {
+  const url = (db.settings.appsScriptUrl || '').trim();
+  if (!url) { setSyncStatus('Isi URL Web App Apps Script dulu di kolom di atas, lalu tekan "Simpan URL".', 'status-err'); return; }
+  setSyncStatus('Menyimpan ke Google Sheet…', 'status-info');
+  let ok = 0, fail = 0;
+  for (const c of SYNC_COLS) {
+    try {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'save', collection: c, rows: rowsFor(c) }) });
+      const j = await res.json();
+      if (j && j.ok) ok++; else fail++;
+    } catch (e) { fail++; }
+  }
+  setSyncStatus(fail ? ('Sinkronisasi selesai: ' + ok + ' koleksi tersimpan, ' + fail + ' gagal. Periksa URL dan deployment Apps Script.') : ('Semua data tersimpan ke Google Sheet (' + ok + ' koleksi).'), fail ? 'status-err' : 'status-ok');
+}
+async function syncLoad() {
+  const url = (db.settings.appsScriptUrl || '').trim();
+  if (!url) { setSyncStatus('Isi URL Web App Apps Script dulu di kolom di atas, lalu tekan "Simpan URL".', 'status-err'); return; }
+  setSyncStatus('Memuat dari Google Sheet…', 'status-info');
+  try {
+    const res = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'action=getAll');
+    const j = await res.json();
+    if (!j || !j.ok || !j.data) { setSyncStatus('Gagal memuat: respons server tidak valid.', 'status-err'); return; }
+    SYNC_COLS.forEach(c => {
+      if (c === 'absensi') {
+        const nested = {};
+        (j.data.absensi || []).forEach(r => {
+          const k = r.tanggal + '|' + r.kelas;
+          if (!nested[k]) nested[k] = {};
+          nested[k][r.siswaId] = r.status;
+        });
+        db.absensi = nested;
+      } else if (Array.isArray(j.data[c])) {
+        db[c] = j.data[c];
+      }
+    });
+    saveDB(); router();
+    setSyncStatus('Data berhasil dimuat dari Google Sheet.', 'status-ok');
+  } catch (e) {
+    setSyncStatus('Gagal memuat: ' + e.message + '. Periksa URL dan deployment Apps Script.', 'status-err');
+  }
+}
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'siaga-mimi-backup.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  const el = document.querySelector('#backupStatus');
+  if (el) { el.textContent = 'File cadangan siaga-mimi-backup.json diunduh.'; el.className = 'status-ok'; }
+}
+function importJSON(ev) {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const base = defaultDB();
+      let count = 0;
+      Object.keys(base).forEach(k => { if (k in data) { db[k] = data[k]; count++; } });
+      saveDB(); router();
+      const el = document.querySelector('#backupStatus');
+      if (el) { el.textContent = 'Data berhasil diimpor (' + count + ' koleksi).'; el.className = 'status-ok'; }
+    } catch (e) {
+      const el = document.querySelector('#backupStatus');
+      if (el) { el.textContent = 'File tidak valid: ' + e.message; el.className = 'status-err'; }
+    }
+  };
+  reader.readAsText(f);
+}
+function wipeAll() {
+  if (!confirm('Hapus SEMUA data SIAGA MIMI? Data awal (1 Modul Ajar + 1 Jurnal) akan dimuat ulang.')) return;
+  localStorage.removeItem(KEY);
+  location.reload();
+}
+
+/* ================= Router & init ================= */
+const ROUTES = {
+  beranda: renderBeranda,
+  'cp-atp': () => renderCrud(MODULES['cp-atp']),
+  'modul-ajar': () => renderCrud(MODULES['modul-ajar']),
+  prota: () => renderCrud(MODULES['prota']),
+  kktp: () => renderCrud(MODULES['kktp']),
+  buku: () => renderCrud(MODULES['buku']),
+  media: () => renderCrud(MODULES['media']),
+  lkm: () => renderCrud(MODULES['lkm']),
+  jurnal: () => renderCrud(MODULES['jurnal']),
+  absensi: renderAbsensi,
+  nilai: renderNilai,
+  refleksi: () => renderCrud(MODULES['refleksi']),
+  kalender: renderKalender,
+  dokumen: () => renderCrud(MODULES['dokumen']),
+  'data-user-guru': () => renderCrud(MODULES['data-user-guru']),
+  pengaturan: renderPengaturan
+};
+function router() {
+  const h = (location.hash || '#/').replace(/^#\//, '');
+  const parts = h.split('/');
+  const id = parts[0] || 'beranda';
+  /* Rute generik Dokumen & Berkas: #/dokumen/NN (NN = 01..34).
+     '#/dokumen' tanpa nomor tetap membuka Dokumen Kepegawaian. */
+  if (id === 'dokumen' && parts[1]) {
+    const nn = parts[1];
+    if (!folderByNum(nn)) { location.hash = '#/'; return; }
+    if (dokUi.folder && dokUi.folder !== nn) { dokUi.formOpen = false; dokUi.editId = null; }
+    if (ui.mod) { ui.formOpen = false; ui.editId = null; ui.mod = null; }
+    setActive('dokumen-' + nn);
+    renderDokumen(nn);
+    document.getElementById('sidebar').classList.remove('open');
+    window.scrollTo(0, 0);
+    return;
+  }
+  dokUi.formOpen = false; dokUi.editId = null; dokUi.folder = null;
+  if (!ROUTES[id]) { location.hash = '#/'; return; }
+  if (ui.mod && ui.mod !== id) { ui.formOpen = false; ui.editId = null; ui.mod = null; }
+  setActive(id);
+  ROUTES[id]();
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', router);
+document.getElementById('menuBtn').addEventListener('click', () => {
+  const sb = document.getElementById('sidebar');
+  if (window.innerWidth <= 900) sb.classList.toggle('open');
+  else sb.classList.toggle('hidden');
+});
+function tickClock() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  document.getElementById('clock').textContent = p(d.getHours()) + '.' + p(d.getMinutes()) + '.' + p(d.getSeconds());
+}
+setInterval(tickClock, 1000);
+tickClock();
+buildNav();
+router();
+</script>
+</body>
+</html>
+
