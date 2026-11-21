@@ -97,6 +97,17 @@
   .status-err { color: #c62828; font-weight: 700; }
   .status-info { color: #1565c0; font-weight: 700; }
   .link { word-break: break-all; }
+  .table-wide { min-width: 1560px; }
+  .cell-long { min-width: 250px; }
+  .cell-mid { min-width: 170px; }
+  .jfoto { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #cfd8d8; margin: 2px; cursor: pointer; }
+  .foto-prev { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .foto-item { position: relative; }
+  .foto-item img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; border: 1px solid #cfd8d8; display: block; }
+  .foto-item button { position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; border-radius: 50%; border: none; background: #c0392b; color: #fff; font-size: 12px; font-weight: 800; cursor: pointer; line-height: 1; }
+  .ai-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .ai-status { font-size: 13px; }
+  .muted-sm { font-size: 12.5px; color: #78909c; }
 
   /* status buttons (absensi) */
   .st-btns { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -265,9 +276,14 @@ function seed(d) {
   d.modulAjar.push({ id: uid(), judul: 'Radius and Diameter of a Circle', mapel: 'Matematika', kelas: '6',
     topik: 'Unsur-unsur Lingkaran: Jari-jari (Radius) dan Diameter', waktu: '2 x 35 menit',
     model: 'Deep Learning + SOLO (PBL)', status: 'Selesai', tautan: 'https://canva.link/zdq4zfp9g1ww2cy' });
-  d.jurnal.push({ id: uid(), tanggal: '2026-11-15', kelas: '6', mapel: 'Matematika',
-    materi: 'Jari-jari (Radius) dan Diameter Lingkaran', kehadiran: '—',
-    catatan: 'Modul Ajar DLLP + SOLO selesai dibuat.' });
+  d.jurnal.push({ id: uid(), tanggal: '2026-11-15', waktu: 'Period 1–2, 08.15–09.25 (2 × 35 min)', kelas: '6', mapel: 'Mathematics',
+    topik: 'Radius and Diameter of a Circle',
+    tujuan: 'Students are able to identify the radius and diameter of a circle.\nStudents are able to explain the relationship between radius and diameter (d = 2r).',
+    model: 'Model: Discovery Learning\nMethod: Hands-on activity, Guided practice',
+    proses: 'Opening Activities (10 min): Greeting, attendance check, and recall of circles in daily life.\nMain Activities (50 min): Students measure circular objects, discover the radius and diameter, and practise drawing circles with a compass.\nClosing Activities (10 min): Recap, quick questions, and preview of circumference.',
+    sakit: '', izin: '', alpa: '', tanpaKet: '',
+    tugas: 'Workbook p. 5 — writing simple measurements of radius and diameter.',
+    catatan: 'DLLP + SOLO Modul Ajar completed.', foto: [] });
   d.guru.push({ id: uid(), nama: 'Rudolf A. Luhukay, S.T.', nip: '', mapel: 'Matematika', kelas: '6',
     peran: 'Admin', status: 'Aktif', hp: '' });
 }
@@ -282,7 +298,12 @@ function loadDB() {
   } catch (e) { const d = defaultDB(); seed(d); return d; }
 }
 let db = loadDB();
-function saveDB() { localStorage.setItem(KEY, JSON.stringify(db)); }
+function saveDB() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch (e) {
+    alert('Could not save: browser storage is full. Please remove some pictures or uploaded files, then try again.');
+  }
+}
 
 /* ================= Daftar 34 Folder Dokumen & Berkas ================= */
 /* Nama persis dari gambar pengguna 15 Nov 2026; folder 34 terpotong di gambar — jangan ditebak. */
@@ -337,7 +358,7 @@ const NAV = [
     { id: 'media', label: 'Media & Bahan Tayang', icon: '📺' },
     { id: 'lkm', label: 'LKM Digital', icon: '📝' } ] },
   { section: 'PILAR 3: PENGELOLAAN KELAS', items: [
-    { id: 'jurnal', label: 'Jurnal Mengajar', icon: '📒' },
+    { id: 'jurnal', label: 'Teaching Journal', icon: '📒' },
     { id: 'absensi', label: 'Absensi Siswa', icon: '🧑‍🤝‍🧑' },
     { id: 'nilai', label: 'Daftar Nilai / Legger', icon: '📊' },
     { id: 'refleksi', label: 'Refleksi & Bimbingan', icon: '✏️' } ] },
@@ -351,7 +372,7 @@ const NAV = [
 ];
 const TITLES = { beranda: 'Beranda SIAGA MIMI', 'cp-atp': 'CP & ATP', 'modul-ajar': 'Modul Ajar Deep Learning',
   prota: 'Prota & Promes', kktp: 'KKTP', buku: 'Buku & Bahan Ajar', media: 'Media & Bahan Tayang',
-  lkm: 'LKM Digital', jurnal: 'Jurnal Mengajar', absensi: 'Absensi Siswa', nilai: 'Daftar Nilai / Legger',
+  lkm: 'LKM Digital', jurnal: 'Teaching Journal', absensi: 'Absensi Siswa', nilai: 'Daftar Nilai / Legger',
   refleksi: 'Refleksi & Bimbingan', kalender: 'Kalender & Minggu Efektif', dokumen: 'Dokumen Kepegawaian',
   'data-user-guru': 'Data User Guru',
   pengaturan: 'Pengaturan & Sinkronisasi' };
@@ -398,6 +419,68 @@ function fieldInput(f, val) {
   if (f.t === 'url') return '<input type="url" name="' + f.n + '" value="' + v + '" placeholder="https://...">';
   return '<input type="text" name="' + f.n + '" value="' + v + '"' + (f.req ? ' required' : '') + '>';
 }
+/* ================= File upload (all list tabs) ================= */
+/* One attached file per record, kept in the record as { name, type, data }.
+   Images are downscaled (max 1024 px, JPEG) so they fit browser storage;
+   other files are capped at 2 MB. Files stay on this device only — the
+   Sheet sync sends a short note instead of the file data (see rowsFor). */
+let crudFile = null;
+function readFileAsDataURL(file, maxDim) {
+  return new Promise((resolve, reject) => {
+    if (file.type && file.type.indexOf('image/') === 0) {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        try {
+          let w = img.naturalWidth, h = img.naturalHeight;
+          const s = Math.min(1, maxDim / Math.max(w, h));
+          w = Math.max(1, Math.round(w * s)); h = Math.max(1, Math.round(h * s));
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          URL.revokeObjectURL(url);
+          resolve(cv.toDataURL('image/jpeg', 0.78));
+        } catch (e) { URL.revokeObjectURL(url); reject(e); }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read this image.')); };
+      img.src = url;
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Could not read this file.'));
+      reader.readAsDataURL(file);
+    }
+  });
+}
+async function onCrudFileChange(ev) {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  if ((!f.type || f.type.indexOf('image/') !== 0) && f.size > 2 * 1024 * 1024) {
+    alert('File is too large (max 2 MB). Please choose a smaller file.');
+    ev.target.value = '';
+    return;
+  }
+  try {
+    const data = await readFileAsDataURL(f, 1024);
+    crudFile = { name: f.name, type: f.type || '', data: data };
+    const n = document.querySelector('#crudFileName');
+    if (n) n.textContent = f.name;
+    const b = document.querySelector('#crudFileRemove');
+    if (b) b.style.display = '';
+  } catch (e) {
+    alert(e.message || 'Could not read this file.');
+    ev.target.value = '';
+  }
+}
+function clearCrudFile() {
+  crudFile = null;
+  const n = document.querySelector('#crudFileName');
+  if (n) n.textContent = 'No file chosen. Max 2 MB — images are compressed.';
+  const i = document.querySelector('#crudFileInput');
+  if (i) i.value = '';
+  const b = document.querySelector('#crudFileRemove');
+  if (b) b.style.display = 'none';
+}
 function formHTML(mod, rec) {
   rec = rec || {};
   let h = '<div class="card"><h3>' + (rec.id ? '✏️ Ubah ' : '＋ Tambah ') + esc(mod.title) + '</h3>';
@@ -405,14 +488,26 @@ function formHTML(mod, rec) {
   mod.fields.forEach(f => {
     h += '<div class="' + (f.t === 'textarea' ? 'full' : '') + '"><label>' + esc(f.l) + (f.req ? ' *' : '') + '</label>' + fieldInput(f, rec[f.n]) + '</div>';
   });
+  h += '<div class="full"><label>📎 Upload File (optional)</label>'
+    + '<div class="ai-row"><label for="crudFileInput" class="btn btn-ghost btn-sm" style="cursor:pointer">📎 Choose File</label>'
+    + '<span id="crudFileName" class="muted-sm">' + (crudFile ? esc(crudFile.name) : 'No file chosen. Max 2 MB — images are compressed.') + '</span>'
+    + '<button type="button" id="crudFileRemove" class="btn btn-danger btn-sm" onclick="clearCrudFile()" style="' + (crudFile ? '' : 'display:none') + '">Remove</button>'
+    + '</div><input type="file" id="crudFileInput" style="display:none"></div>';
   h += '</div><div class="form-actions"><button type="submit" class="btn btn-primary">💾 Simpan</button>'
     + '<button type="button" class="btn btn-ghost" onclick="closeForm()">Batal</button></div></form></div>';
   return h;
 }
 function closeForm() { ui.formOpen = false; ui.editId = null; router(); }
 function openForm(modKey, id) {
-  ui.mod = modKey; ui.editId = id || null; ui.formOpen = true; renderCrud(MODULES[modKey]);
-  setTimeout(() => { const el = document.querySelector('#crudForm'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30);
+  ui.mod = modKey; ui.editId = id || null; ui.formOpen = true;
+  const rows = db[MODULES[modKey].key] || [];
+  const rec = id ? rows.find(r => r.id === id) : null;
+  crudFile = rec && rec._file ? rec._file : null;
+  if (modKey === 'jurnal') {
+    jurnalFotos = rec && Array.isArray(rec.foto) ? rec.foto.slice() : [];
+    renderJurnal();
+  } else renderCrud(MODULES[modKey]);
+  setTimeout(() => { const el = document.querySelector('#crudForm') || document.querySelector('#jurnalForm'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30);
 }
 function deleteRow(modKey, id) {
   const mod = MODULES[modKey];
@@ -447,7 +542,8 @@ function renderCrud(mod) {
     rows.forEach((r, i) => {
       h += '<tr><td>' + (i + 1) + '</td>';
       mod.fields.forEach(f => { h += '<td>' + cellVal(r, f) + '</td>'; });
-      h += '<td><button class="btn btn-ghost btn-sm" onclick="openForm(\'' + mod.id + '\',\'' + r.id + '\')">Ubah</button> '
+      h += '<td>' + (r._file ? '<a class="link" href="' + esc(r._file.data) + '" download="' + esc(r._file.name) + '" target="_blank" rel="noopener">📎 File</a><br>' : '')
+        + '<button class="btn btn-ghost btn-sm" onclick="openForm(\'' + mod.id + '\',\'' + r.id + '\')">Ubah</button> '
         + '<button class="btn btn-danger btn-sm" onclick="deleteRow(\'' + mod.id + '\',\'' + r.id + '\')">Hapus</button></td></tr>';
     });
     h += '</tbody></table>';
@@ -459,10 +555,13 @@ function renderCrud(mod) {
     ev.preventDefault();
     const fd = new FormData(form); const data = { id: ui.editId || uid() };
     mod.fields.forEach(f => { data[f.n] = (fd.get(f.n) || '').toString().trim(); });
+    data._file = crudFile;
     const idx = rows.findIndex(r => r.id === data.id);
     if (idx >= 0) rows[idx] = data; else rows.push(data);
     saveDB(); ui.formOpen = false; ui.editId = null; router();
   });
+  const fi = document.querySelector('#crudFileInput');
+  if (fi) fi.addEventListener('change', onCrudFileChange);
 }
 
 /* ================= Module configs ================= */
@@ -525,15 +624,23 @@ const MODULES = {
       { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
       { n: 'soal', l: 'Jumlah Soal', t: 'number' },
       { n: 'tautan', l: 'Tautan', t: 'url' } ] },
-  'jurnal': { id: 'jurnal', key: 'jurnal', title: 'Jurnal Mengajar', short: 'Jurnal',
-    desc: 'Catatan harian kegiatan mengajar.',
+  'jurnal': { id: 'jurnal', key: 'jurnal', title: 'Teaching Journal', short: 'Journal',
+    desc: 'Daily teaching journal — objectives, learning process, attendance, assignment, and pictures of students’ activity.',
     fields: [
-      { n: 'tanggal', l: 'Tanggal', t: 'date', req: 1 },
-      { n: 'kelas', l: 'Kelas', t: 'text', req: 1 },
-      { n: 'mapel', l: 'Mapel', t: 'text', req: 1 },
-      { n: 'materi', l: 'Materi', t: 'text', req: 1 },
-      { n: 'kehadiran', l: 'Kehadiran (hadir/total)', t: 'text' },
-      { n: 'catatan', l: 'Catatan', t: 'textarea' } ] },
+      { n: 'tanggal', l: 'Day / Date', t: 'date', req: 1 },
+      { n: 'waktu', l: 'Time Period', t: 'text', req: 1 },
+      { n: 'mapel', l: 'Subject', t: 'text', req: 1 },
+      { n: 'kelas', l: 'Class', t: 'text', req: 1 },
+      { n: 'topik', l: 'Topic', t: 'text' },
+      { n: 'tujuan', l: 'Learning Objectives', t: 'textarea', req: 1 },
+      { n: 'model', l: 'Model & Method', t: 'textarea' },
+      { n: 'proses', l: 'Learning Process (Opening • Main • Closing)', t: 'textarea' },
+      { n: 'sakit', l: 'Sick', t: 'text' },
+      { n: 'izin', l: 'Permission', t: 'text' },
+      { n: 'alpa', l: 'Absent', t: 'text' },
+      { n: 'tanpaKet', l: 'Unexcused Absence', t: 'text' },
+      { n: 'tugas', l: 'Assignment', t: 'textarea' },
+      { n: 'catatan', l: 'Remark', t: 'textarea' } ] },
   'refleksi': { id: 'refleksi', key: 'refleksi', title: 'Refleksi & Bimbingan', short: 'Refleksi',
     desc: 'Refleksi pembelajaran dan catatan bimbingan siswa.',
     fields: [
@@ -565,6 +672,36 @@ const MODULES = {
 /* Satu halaman generik untuk tiap folder 01–34; data di koleksi 'dokumenBerkas'
    (nama 'dokumen' sudah dipakai Dokumen Kepegawaian, jadi dipakai nama lain). */
 let dokUi = { folder: null, editId: null, formOpen: false };
+let dokFile = null;
+async function onDokFileChange(ev) {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  if ((!f.type || f.type.indexOf('image/') !== 0) && f.size > 2 * 1024 * 1024) {
+    alert('File is too large (max 2 MB). Please choose a smaller file.');
+    ev.target.value = '';
+    return;
+  }
+  try {
+    const data = await readFileAsDataURL(f, 1024);
+    dokFile = { name: f.name, type: f.type || '', data: data };
+    const n = document.querySelector('#dokFileName');
+    if (n) n.textContent = f.name;
+    const b = document.querySelector('#dokFileRemove');
+    if (b) b.style.display = '';
+  } catch (e) {
+    alert(e.message || 'Could not read this file.');
+    ev.target.value = '';
+  }
+}
+function clearDokFile() {
+  dokFile = null;
+  const n = document.querySelector('#dokFileName');
+  if (n) n.textContent = 'No file chosen. Max 2 MB — images are compressed.';
+  const i = document.querySelector('#dokFileInput');
+  if (i) i.value = '';
+  const b = document.querySelector('#dokFileRemove');
+  if (b) b.style.display = 'none';
+}
 function dokFormHTML(nn, rec) {
   rec = rec || {};
   const jenisOpts = ['File', 'Link', 'Video', 'Lainnya'];
@@ -575,12 +712,20 @@ function dokFormHTML(nn, rec) {
     + '<div><label>Tautan</label><input type="url" name="tautan" placeholder="https://..." value="' + esc(rec.tautan || '') + '"></div>'
     + '<div><label>Tanggal</label><input type="date" name="tanggal" value="' + esc(rec.tanggal || '') + '"></div>'
     + '<div class="full"><label>Keterangan</label><textarea name="keterangan" rows="3">' + esc(rec.keterangan || '') + '</textarea></div>'
+    + '<div class="full"><label>📎 Upload File (optional — instead of a link)</label>'
+    + '<div class="ai-row"><label for="dokFileInput" class="btn btn-ghost btn-sm" style="cursor:pointer">📎 Choose File</label>'
+    + '<span id="dokFileName" class="muted-sm">' + (dokFile ? esc(dokFile.name) : 'No file chosen. Max 2 MB — images are compressed.') + '</span>'
+    + '<button type="button" id="dokFileRemove" class="btn btn-danger btn-sm" onclick="clearDokFile()" style="' + (dokFile ? '' : 'display:none') + '">Remove</button>'
+    + '</div><input type="file" id="dokFileInput" style="display:none"></div>'
     + '</div><div class="form-actions"><button type="submit" class="btn btn-primary">💾 Simpan</button>'
     + '<button type="button" class="btn btn-ghost" onclick="closeDokForm()">Batal</button></div></form></div>';
   return h;
 }
 function openDokForm(nn, id) {
-  dokUi.folder = nn; dokUi.editId = id || null; dokUi.formOpen = true; renderDokumen(nn);
+  dokUi.folder = nn; dokUi.editId = id || null; dokUi.formOpen = true;
+  const rec = id ? db.dokumenBerkas.find(r => r.id === id) : null;
+  dokFile = rec && rec._file ? rec._file : null;
+  renderDokumen(nn);
   setTimeout(() => { const el = document.querySelector('#dokForm'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30);
 }
 function closeDokForm() { dokUi.formOpen = false; dokUi.editId = null; router(); }
@@ -607,9 +752,11 @@ function renderDokumen(nn) {
   } else {
     h += '<table><thead><tr><th style="width:44px">No</th><th>Nama Dokumen</th><th>Jenis</th><th>Tautan</th><th>Tanggal</th><th>Keterangan</th><th style="width:130px">Aksi</th></tr></thead><tbody>';
     rows.forEach((r, i) => {
-      const tautan = r.tautan && /^https?:\/\//i.test(r.tautan)
-        ? '<a class="link" href="' + esc(r.tautan) + '" target="_blank" rel="noopener">🔗 Buka</a>'
-        : esc(r.tautan || '—');
+      const tautan = r._file
+        ? '<a class="link" href="' + esc(r._file.data) + '" download="' + esc(r._file.name) + '" target="_blank" rel="noopener">📎 ' + esc(r._file.name) + '</a>'
+        : (r.tautan && /^https?:\/\//i.test(r.tautan)
+          ? '<a class="link" href="' + esc(r.tautan) + '" target="_blank" rel="noopener">🔗 Buka</a>'
+          : esc(r.tautan || '—'));
       h += '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nama) + '</td><td>' + esc(r.jenis) + '</td><td>' + tautan + '</td><td>' + esc(fmtTanggal(r.tanggal)) + '</td><td>' + esc(r.keterangan || '—') + '</td>'
         + '<td><button class="btn btn-ghost btn-sm" onclick="openDokForm(\'' + nn + '\',\'' + r.id + '\')">Ubah</button> '
         + '<button class="btn btn-danger btn-sm" onclick="deleteDok(\'' + nn + '\',\'' + r.id + '\')">Hapus</button></td></tr>';
@@ -627,11 +774,14 @@ function renderDokumen(nn) {
       jenis: (fd.get('jenis') || '').toString(),
       tautan: (fd.get('tautan') || '').toString().trim(),
       tanggal: (fd.get('tanggal') || '').toString(),
-      keterangan: (fd.get('keterangan') || '').toString().trim() };
+      keterangan: (fd.get('keterangan') || '').toString().trim(),
+      _file: dokFile };
     const idx = db.dokumenBerkas.findIndex(r => r.id === data.id);
     if (idx >= 0) db.dokumenBerkas[idx] = data; else db.dokumenBerkas.push(data);
     saveDB(); dokUi.formOpen = false; dokUi.editId = null; router();
   });
+  const dfi = document.querySelector('#dokFileInput');
+  if (dfi) dfi.addEventListener('change', onDokFileChange);
 }
 
 /* ================= Beranda ================= */
@@ -650,7 +800,7 @@ function renderBeranda() {
   const dok = db.dokumen.length + db.buku.length + (db.dokumenBerkas ? db.dokumenBerkas.length : 0);
   let h = '<div class="stats">'
     + '<div class="stat teal"><div><div class="lbl">Total Modul Ajar</div><div class="num">' + db.modulAjar.length + '</div></div><div class="sic">📖</div></div>'
-    + '<div class="stat blue"><div><div class="lbl">Jurnal Mengajar</div><div class="num">' + db.jurnal.length + '</div></div><div class="sic">📒</div></div>'
+    + '<div class="stat blue"><div><div class="lbl">Teaching Journal</div><div class="num">' + db.jurnal.length + '</div></div><div class="sic">📒</div></div>'
     + '<div class="stat orange"><div><div class="lbl">Absensi Hari Ini</div><div class="num">' + a.pct + '%</div>'
     + (a.total ? '<div class="sub">' + a.hadir + ' dari ' + a.total + ' siswa hadir</div>' : '<div class="sub">Belum ada absensi hari ini</div>') + '</div><div class="sic">🧑‍🤝‍🧑</div></div>'
     + '<div class="stat olive"><div><div class="lbl">Dokumen Berkas</div><div class="num">' + dok + '</div></div><div class="sic">📁</div></div>'
@@ -664,10 +814,10 @@ function renderBeranda() {
     h += '<p style="margin-bottom:8px"><strong>' + esc(m.judul) + '</strong><br><span class="muted">' + esc(m.mapel) + ' • Kelas ' + esc(m.kelas) + ' • ' + esc(m.waktu || '') + ' • </span><span class="pill ' + (m.status === 'Selesai' ? 'pill-green' : 'pill-amber') + '">' + esc(m.status || 'Draft') + '</span></p>';
   });
   h += '</div>';
-  h += '<div class="card"><h3>📒 Jurnal Mengajar Terbaru</h3>';
-  if (!db.jurnal.length) h += '<p class="muted">Belum ada Jurnal Mengajar. <a href="#/jurnal">Tambah Jurnal →</a></p>';
+  h += '<div class="card"><h3>📒 Latest Teaching Journal</h3>';
+  if (!db.jurnal.length) h += '<p class="muted">No Teaching Journal yet. <a href="#/jurnal">Add Journal →</a></p>';
   else db.jurnal.slice(-3).reverse().forEach(j => {
-    h += '<p style="margin-bottom:8px"><strong>' + esc(fmtTanggal(j.tanggal)) + ' — Kelas ' + esc(j.kelas) + '</strong><br><span class="muted">' + esc(j.mapel) + ' • ' + esc(j.materi) + '</span></p>';
+    h += '<p style="margin-bottom:8px"><strong>' + esc(dayDate(j.tanggal)) + ' — Grade ' + esc(j.kelas) + '</strong><br><span class="muted">' + esc(j.mapel) + ' • ' + esc(j.tujuan || j.materi || '') + '</span></p>';
   });
   h += '</div></div>';
   h += '<div class="card"><h3>📊 Ringkasan Data</h3><p class="muted" style="line-height:1.9">'
@@ -876,7 +1026,7 @@ function renderKalender() {
   for (let d = 1; d <= daysIn; d++) {
     const iso = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
     cells += '<div class="cal-day' + (iso === today ? ' today' : '') + '">' + d
-      + (jurnalDates.has(iso) ? '<br><span class="dot" title="Ada jurnal mengajar"></span>' : '') + '</div>';
+      + (jurnalDates.has(iso) ? '<br><span class="dot" title="Teaching journal on this date"></span>' : '') + '</div>';
   }
   const tail = (7 - (offset + daysIn) % 7) % 7;
   for (let i = 1; i <= tail; i++) cells += '<div class="cal-day other">' + i + '</div>';
@@ -886,7 +1036,7 @@ function renderKalender() {
     + '<div><button class="btn btn-ghost btn-sm" onclick="geserBulan(-1)">‹ Bulan Lalu</button> '
     + '<button class="btn btn-ghost btn-sm" onclick="geserBulan(1)">Bulan Depan ›</button></div></div>'
     + '<div class="cal-grid">' + cells + '</div>'
-    + '<p class="muted" style="margin-top:10px">● Titik jingga = ada Jurnal Mengajar pada tanggal tersebut. Hari ini ditandai warna teal.</p></div>';
+    + '<p class="muted" style="margin-top:10px">● Orange dot = a Teaching Journal entry on that date. Today is marked in teal.</p></div>';
 
   const total = db.kalender.reduce((a, r) => a + (parseInt(r.jumlah, 10) || 0), 0);
   const rec = calState.editId ? db.kalender.find(r => r.id === calState.editId) : null;
@@ -947,7 +1097,15 @@ function rowsFor(c) {
     });
     return rows;
   }
-  return db[c] || [];
+  /* Pictures and uploaded files stay on this device only: their base64 data
+     is far too large for a Sheet cell (50.000 karakter), so sync sends a
+     short note instead of the file itself. */
+  return (db[c] || []).map(r => {
+    const x = Object.assign({}, r);
+    if (x._file) x._file = '📎 ' + (x._file.name || 'file') + ' — file stored on this device';
+    if (Array.isArray(x.foto) && x.foto.length) x.foto = x.foto.length + ' picture(s) — stored on this device';
+    return x;
+  });
 }
 function setSyncStatus(msg, cls) {
   const el = document.querySelector('#syncStatus');
@@ -1063,6 +1221,194 @@ function wipeAll() {
   location.reload();
 }
 
+/* ================= Teaching Journal (custom) ================= */
+/* Best-format journal: Day/Date, Time Period, Subject, Learning Objectives,
+   Model & Method, Learning Process, Attendance (Sick / Permission / Absent /
+   Unexcused), Assignment, Remark, and Pictures of Students' Activity.
+   All in English. Photos are compressed and stored on this device only
+   (max 3 per entry); the "Generate with AI" button drafts the entry
+   through the free tutor server (/api/siaga). */
+let jurnalFotos = [];
+function dayDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d.getTime())) return esc(iso);
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+function nl2brTxt(v) {
+  if (v == null || v === '') return '—';
+  return esc(v).replace(/\n/g, '<br>');
+}
+function jurnalFormHTML(rec) {
+  rec = rec || {};
+  const v = (k, d) => esc(rec[k] == null ? (d || '') : rec[k]);
+  let h = '<div class="card"><h3>' + (rec.id ? '✏️ Edit Teaching Journal' : '＋ Add Teaching Journal') + '</h3>';
+  h += '<form id="jurnalForm"><div class="form-grid">';
+  h += '<div><label>Day / Date *</label><input type="date" name="tanggal" required value="' + v('tanggal', todayStr()) + '"></div>';
+  h += '<div><label>Time Period *</label><input type="text" name="waktu" required placeholder="Period 1–2, 08.15–09.25 (2 × 35 min)" value="' + v('waktu') + '"></div>';
+  h += '<div><label>Subject *</label><input type="text" name="mapel" required placeholder="Mathematics" value="' + v('mapel') + '"></div>';
+  h += '<div><label>Class *</label><input type="text" name="kelas" required placeholder="6" value="' + v('kelas') + '"></div>';
+  h += '<div class="full"><label>Topic</label><input type="text" name="topik" placeholder="Radius and Diameter of a Circle" value="' + v('topik') + '"></div>';
+  h += '<div class="full"><label>Learning Objectives *</label><textarea name="tujuan" rows="3" required placeholder="Students are able to ...">' + v('tujuan', rec.materi || '') + '</textarea></div>';
+  h += '<div class="full"><label>Model & Method</label><textarea name="model" rows="2" placeholder="Model: Discovery Learning&#10;Method: Guided practice, Pair work">' + v('model') + '</textarea></div>';
+  h += '<div class="full"><label>Learning Process (Opening • Main • Closing)</label><textarea name="proses" rows="4" placeholder="Opening Activities (10 min): ...&#10;Main Activities (50 min): ...&#10;Closing Activities (10 min): ...">' + v('proses') + '</textarea></div>';
+  h += '<div class="full"><strong>Attendance — names of students</strong></div>';
+  h += '<div><label>Sick</label><input type="text" name="sakit" placeholder="Student names" value="' + v('sakit') + '"></div>';
+  h += '<div><label>Permission</label><input type="text" name="izin" placeholder="Student names" value="' + v('izin') + '"></div>';
+  h += '<div><label>Absent</label><input type="text" name="alpa" placeholder="Student names" value="' + v('alpa') + '"></div>';
+  h += '<div><label>Unexcused Absence</label><input type="text" name="tanpaKet" placeholder="Student names" value="' + v('tanpaKet') + '"></div>';
+  h += '<div class="full"><label>Assignment</label><textarea name="tugas" rows="2" placeholder="Workbook p. 5 — ...">' + v('tugas') + '</textarea></div>';
+  h += '<div class="full"><label>Remark</label><textarea name="catatan" rows="2" placeholder="Notes for the next lesson">' + v('catatan') + '</textarea></div>';
+  h += '<div class="full"><label>📷 Pictures of Students’ Activity</label>'
+    + '<div class="ai-row"><label for="jurnalFotoInput" class="btn btn-ghost btn-sm" style="cursor:pointer">📷 Upload Pictures</label>'
+    + '<span class="muted-sm">Max 3 pictures (JPG/PNG). Pictures are compressed and saved on this device only.</span></div>'
+    + '<input type="file" id="jurnalFotoInput" accept="image/*" multiple style="display:none">'
+    + '<div class="foto-prev" id="jurnalFotoPrev"></div></div>';
+  h += '</div><div class="form-actions"><button type="submit" class="btn btn-primary">💾 Save</button>'
+    + '<button type="button" class="btn btn-ghost" id="aiGenBtn" onclick="generateJurnalAI()">✨ Generate with AI</button>'
+    + '<button type="button" class="btn btn-ghost" onclick="closeForm()">Cancel</button></div>'
+    + '<p class="ai-status" id="aiStatus"></p></form></div>';
+  return h;
+}
+function renderJurnalFotoPreview() {
+  const el = document.querySelector('#jurnalFotoPrev');
+  if (!el) return;
+  el.innerHTML = jurnalFotos.map((src, i) =>
+    '<span class="foto-item"><img src="' + esc(src) + '" alt="Student activity ' + (i + 1) + '"><button type="button" onclick="removeJurnalFoto(' + i + ')" title="Remove picture">✕</button></span>'
+  ).join('');
+}
+function removeJurnalFoto(i) {
+  jurnalFotos.splice(i, 1);
+  renderJurnalFotoPreview();
+}
+async function onJurnalFotoChange(ev) {
+  const files = Array.from(ev.target.files || []);
+  if (!files.length) return;
+  let added = 0;
+  for (const f of files) {
+    if (jurnalFotos.length >= 3) break;
+    try {
+      const data = await readFileAsDataURL(f, 800);
+      jurnalFotos.push(data);
+      added++;
+    } catch (e) { alert(e.message || 'Could not read this picture.'); }
+  }
+  if (added < files.length) alert('Max 3 pictures per journal entry. Only the first ' + added + ' were added.');
+  ev.target.value = '';
+  renderJurnalFotoPreview();
+}
+function setAiStatus(msg, cls) {
+  const el = document.querySelector('#aiStatus');
+  if (el) { el.textContent = msg || ''; el.className = 'ai-status ' + (cls || ''); }
+}
+async function generateJurnalAI() {
+  const form = document.querySelector('#jurnalForm');
+  if (!form) return;
+  const fd = new FormData(form);
+  const subject = (fd.get('mapel') || '').toString().trim();
+  const kelas = (fd.get('kelas') || '').toString().trim();
+  const topic = (fd.get('topik') || '').toString().trim();
+  const tanggal = (fd.get('tanggal') || '').toString();
+  const waktu = (fd.get('waktu') || '').toString().trim();
+  if (!subject) { setAiStatus('Please fill in Subject first, then tap Generate with AI.', 'status-err'); return; }
+  const btn = document.querySelector('#aiGenBtn');
+  if (btn) btn.disabled = true;
+  setAiStatus('Generating with AI… please wait.', 'status-info');
+  try {
+    const res = await fetch('https://learn-syriac-tutor.vercel.app/api/siaga', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task: 'journal', subject: subject, kelas: kelas, topic: topic, tanggal: tanggal, waktu: waktu })
+    });
+    const j = await res.json();
+    if (!j || !j.ok || !j.data) {
+      setAiStatus('AI: ' + ((j && j.error) || 'could not generate. Please try again.'), 'status-err');
+      if (btn) btn.disabled = false;
+      return;
+    }
+    const d = j.data;
+    const fillIfEmpty = (name, val) => {
+      const el = form.querySelector('[name="' + name + '"]');
+      if (el && !el.value.trim() && val) el.value = val;
+    };
+    fillIfEmpty('tujuan', d.objectives);
+    fillIfEmpty('model', d.modelMethod);
+    fillIfEmpty('proses', d.learningProcess);
+    fillIfEmpty('tugas', d.assignment);
+    fillIfEmpty('catatan', d.remark);
+    setAiStatus('AI draft ready — please review and edit before saving.', 'status-ok');
+  } catch (e) {
+    setAiStatus('Could not reach the AI server: ' + e.message, 'status-err');
+  }
+  if (btn) btn.disabled = false;
+}
+function renderJurnal() {
+  const rows = db.jurnal;
+  let h = '<div class="page-head"><div><h2>Teaching Journal</h2><p>Daily teaching journal — objectives, learning process, attendance, assignment, and pictures of students’ activity.</p></div>'
+    + '<button class="btn btn-primary" onclick="openForm(\'jurnal\')">＋ Add Journal</button></div>';
+  if (ui.formOpen && ui.mod === 'jurnal') {
+    const rec = ui.editId ? rows.find(r => r.id === ui.editId) : null;
+    h += jurnalFormHTML(rec);
+  }
+  h += '<div class="card"><div class="table-wrap">';
+  if (!rows.length) {
+    h += '<div class="empty"><div class="big">📭</div><p>No Teaching Journal yet.</p>'
+      + '<button class="btn btn-primary" onclick="openForm(\'jurnal\')">＋ Add Journal</button></div>';
+  } else {
+    h += '<table class="table-wide"><thead>'
+      + '<tr><th rowspan="2" style="width:44px">No</th><th rowspan="2">Day / Date</th><th rowspan="2">Time Period</th><th rowspan="2">Subject</th>'
+      + '<th rowspan="2" class="cell-long">Learning Objectives</th><th rowspan="2" class="cell-mid">Model &amp; Method</th><th rowspan="2" class="cell-long">Learning Process</th>'
+      + '<th colspan="4" style="text-align:center">Attendance</th>'
+      + '<th rowspan="2" class="cell-mid">Assignment</th><th rowspan="2" class="cell-mid">Remark</th><th rowspan="2">Pictures of Students’ Activity</th><th rowspan="2" style="width:130px">Actions</th></tr>'
+      + '<tr><th>Sick</th><th>Permission</th><th>Absent</th><th>Unexcused Absence</th></tr>'
+      + '</thead><tbody>';
+    rows.forEach((r, i) => {
+      const fotos = Array.isArray(r.foto) ? r.foto : [];
+      const pics = fotos.length
+        ? fotos.map(src => '<a href="' + esc(src) + '" target="_blank" rel="noopener"><img class="jfoto" src="' + esc(src) + '" alt="Student activity"></a>').join('')
+        : '—';
+      const subj = '<strong>' + esc(r.mapel || '—') + '</strong>'
+        + (r.kelas ? '<br><span class="muted-sm">Grade ' + esc(r.kelas) + '</span>' : '')
+        + (r.topik ? '<br><span class="muted-sm">Topic: ' + esc(r.topik) + '</span>' : '');
+      h += '<tr><td>' + (i + 1) + '</td>'
+        + '<td style="white-space:nowrap">' + esc(dayDate(r.tanggal)) + '</td>'
+        + '<td>' + esc(r.waktu || '—') + '</td>'
+        + '<td>' + subj + '</td>'
+        + '<td class="cell-long">' + nl2brTxt(r.tujuan || r.materi) + '</td>'
+        + '<td class="cell-mid">' + nl2brTxt(r.model) + '</td>'
+        + '<td class="cell-long">' + nl2brTxt(r.proses) + '</td>'
+        + '<td>' + esc(r.sakit || '—') + '</td>'
+        + '<td>' + esc(r.izin || '—') + '</td>'
+        + '<td>' + esc(r.alpa || '—') + '</td>'
+        + '<td>' + esc(r.tanpaKet || '—') + '</td>'
+        + '<td class="cell-mid">' + nl2brTxt(r.tugas) + '</td>'
+        + '<td class="cell-mid">' + nl2brTxt(r.catatan) + '</td>'
+        + '<td style="min-width:140px">' + pics + '</td>'
+        + '<td><button class="btn btn-ghost btn-sm" onclick="openForm(\'jurnal\',\'' + r.id + '\')">Edit</button> '
+        + '<button class="btn btn-danger btn-sm" onclick="deleteRow(\'jurnal\',\'' + r.id + '\')">Delete</button></td></tr>';
+    });
+    h += '</tbody></table>';
+  }
+  h += '</div></div>';
+  $('#app').innerHTML = h;
+  renderJurnalFotoPreview();
+  const fi = document.querySelector('#jurnalFotoInput');
+  if (fi) fi.addEventListener('change', onJurnalFotoChange);
+  const form = document.querySelector('#jurnalForm');
+  if (form) form.addEventListener('submit', ev => {
+    ev.preventDefault();
+    const fd = new FormData(form);
+    const data = { id: ui.editId || uid(), foto: jurnalFotos.slice() };
+    ['tanggal', 'waktu', 'mapel', 'kelas', 'topik', 'tujuan', 'model', 'proses', 'sakit', 'izin', 'alpa', 'tanpaKet', 'tugas', 'catatan'].forEach(n => {
+      data[n] = (fd.get(n) || '').toString().trim();
+    });
+    const idx = rows.findIndex(r => r.id === data.id);
+    if (idx >= 0) rows[idx] = data; else rows.push(data);
+    saveDB(); ui.formOpen = false; ui.editId = null; jurnalFotos = []; router();
+  });
+}
+
 /* ================= Router & init ================= */
 const ROUTES = {
   beranda: renderBeranda,
@@ -1073,7 +1419,7 @@ const ROUTES = {
   buku: () => renderCrud(MODULES['buku']),
   media: () => renderCrud(MODULES['media']),
   lkm: () => renderCrud(MODULES['lkm']),
-  jurnal: () => renderCrud(MODULES['jurnal']),
+  jurnal: renderJurnal,
   absensi: renderAbsensi,
   nilai: renderNilai,
   refleksi: () => renderCrud(MODULES['refleksi']),
